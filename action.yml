@@ -1,0 +1,86 @@
+name: "SemShift Check"
+description: "Detect semantic shifts, claim changes, tone drift, and risk changes in pull requests."
+author: "SemShift contributors"
+
+inputs:
+  files:
+    description: "Comma-separated files or glob patterns. Leave empty to compare changed supported files in the PR."
+    required: false
+    default: ""
+  mode:
+    description: "Review mode: default, readme, policy, research, resume, or prompt."
+    required: false
+    default: "default"
+  fail_on:
+    description: "Fail the action when drift reaches this label: low, medium, high, critical."
+    required: false
+    default: "high"
+  model:
+    description: "Embedding backend. The action defaults to 'tfidf' for fast CI; pass a SentenceTransformers model for deeper local embeddings."
+    required: false
+    default: "tfidf"
+  report:
+    description: "Markdown report artifact path."
+    required: false
+    default: "semshift-report.md"
+  base_ref:
+    description: "Base ref to compare against. Defaults to the pull request base branch."
+    required: false
+    default: ""
+  pr_comment:
+    description: "Post or update a SemShift summary comment on pull requests."
+    required: false
+    default: "false"
+  github_token:
+    description: "GitHub token used for PR comments. Defaults to github.token when pr_comment is true."
+    required: false
+    default: ""
+
+outputs:
+  report_path:
+    description: "Path to the generated SemShift markdown report."
+    value: ${{ steps.semshift.outputs.report_path }}
+  worst_label:
+    description: "Worst drift label found across compared files."
+    value: ${{ steps.semshift.outputs.worst_label }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install SemShift
+      shell: bash
+      run: |
+        if [ "${{ inputs.model }}" = "tfidf" ]; then
+          python -m pip install "numpy>=1.24" "rich>=13.7" "scikit-learn>=1.3" "typer>=0.12"
+          python -m pip install --no-deps "${{ github.action_path }}"
+        else
+          python -m pip install "${{ github.action_path }}[models]"
+        fi
+
+    - name: Run SemShift
+      id: semshift
+      shell: bash
+      run: >
+        python -m semshift.integrations.github_action
+        --files "${{ inputs.files }}"
+        --mode "${{ inputs.mode }}"
+        --fail-on "${{ inputs.fail_on }}"
+        --model "${{ inputs.model }}"
+        --report "${{ inputs.report }}"
+        --base-ref "${{ inputs.base_ref }}"
+        --pr-comment "${{ inputs.pr_comment }}"
+        --github-token "$SEMSHIFT_GITHUB_TOKEN"
+      env:
+        SEMSHIFT_GITHUB_TOKEN: ${{ inputs.github_token || github.token }}
+
+    - name: Upload SemShift report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: semshift-report
+        path: "${{ inputs.report }}"

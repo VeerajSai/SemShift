@@ -1,0 +1,102 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "semshift"
+version = "0.1.0"
+description = "Git diff for meaning: detect semantic shifts, claim changes, tone drift, and risk changes in text."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "SemShift contributors" }
+]
+maintainers = [
+  { name = "SemShift contributors" }
+]
+keywords = [
+  "semantic-diff",
+  "semantic-shift",
+  "embeddings",
+  "cli",
+  "documentation",
+  "policy",
+  "prompt-engineering",
+  "semantic-search",
+  "github-actions",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Legal Industry",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Typing :: Typed",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Software Development :: Version Control",
+  "Topic :: Text Processing :: General",
+  "Topic :: Text Processing :: Linguistic",
+]
+dependencies = [
+  "numpy>=1.24",
+  "rich>=13.7",
+  "scikit-learn>=1.3",
+  "typer>=0.12",
+]
+
+[project.optional-dependencies]
+models = [
+  "sentence-transformers>=2.7",
+]
+dev = [
+  "build>=1.2",
+  "pytest>=8.0",
+  "ruff>=0.5",
+  "twine>=5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/VeerajSai/semshift"
+Repository = "https://github.com/VeerajSai/semshift"
+Issues = "https://github.com/VeerajSai/semshift/issues"
+Changelog = "https://github.com/VeerajSai/semshift/blob/main/CHANGELOG.md"
+Security = "https://github.com/VeerajSai/semshift/security/policy"
+
+[project.scripts]
+semshift = "semshift.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["semshift"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/semshift",
+  "/tests",
+  "/examples",
+  "/README.md",
+  "/CHANGELOG.md",
+  "/CONTRIBUTING.md",
+  "/SECURITY.md",
+  "/LICENSE",
+  "/action.yml",
+  "/.github/workflows/ci.yml",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
