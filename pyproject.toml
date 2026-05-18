@@ -1,4 +1,4 @@
-[build-system]
+﻿[build-system]
 requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
@@ -63,11 +63,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/VeerajSai/semshift"
-Repository = "https://github.com/VeerajSai/semshift"
-Issues = "https://github.com/VeerajSai/semshift/issues"
-Changelog = "https://github.com/VeerajSai/semshift/blob/main/CHANGELOG.md"
-Security = "https://github.com/VeerajSai/semshift/security/policy"
+Homepage = "https://github.com/VeerajSai/SemShift"
+Repository = "https://github.com/VeerajSai/SemShift"
+Issues = "https://github.com/VeerajSai/SemShift/issues"
+Changelog = "https://github.com/VeerajSai/SemShift/blob/main/CHANGELOG.md"
+Security = "https://github.com/VeerajSai/SemShift/security/policy"
 
 [project.scripts]
 semshift = "semshift.cli:main"
