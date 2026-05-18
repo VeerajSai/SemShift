@@ -1,10 +1,16 @@
-﻿# SemShift
+<div align="center">
+
+# SemShift
 
 [![CI](https://github.com/VeerajSai/semshift/actions/workflows/ci.yml/badge.svg)](https://github.com/VeerajSai/semshift/actions/workflows/ci.yml) [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![PyPI](https://img.shields.io/badge/pypi-semshift-orange)](https://pypi.org/project/semshift/) [![CLI](https://img.shields.io/badge/interface-CLI-111827)](#cli-usage)
 
-**Git diff for meaning.** Detect semantic drift, claim changes, tone shifts, and risk changes in text files, documentation, policies, prompts, research drafts, resumes, and LLM outputs.
+**Git diff for meaning.**
 
-*Semantic diff: Local-first • Open-source • Designed for review workflows*
+Detect semantic drift, claim changes, tone shifts, and risk changes in text files, documentation, policies, prompts, research drafts, resumes, and LLM outputs.
+
+*Local-first · Open-source · Designed for review workflows*
+
+</div>
 
 ---
 
@@ -402,31 +408,59 @@ semshift compare old.md new.md --json
 ```
 
 Returns a JSON object with:
-- `files`: Input file paths
-- `mode`: Review mode used
-- `overall_score`: Numeric drift (0.0-1.0)
-- `drift_label`: Categorical label (low, medium, high, critical)
-- `summary`: Human-readable summary
-- `chunk_matches`: List of matched chunks
-- `claim_changes`: List of claim changes
-- `tone_shift`: Tone analysis result
-- `risk_flags`: List of flagged risks with severity
-- `recommendations`: Actionable next steps
-- `embedding_backend`: Backend used (tfidf, etc.)
-- `warnings`: Any warnings or fallback notices
+- `files` — Input file paths
+- `mode` — Review mode used
+- `overall_score` — Numeric drift (0.0–1.0)
+- `drift_label` — Categorical label (low, medium, high, critical)
+- `summary` — Human-readable summary
+- `chunk_matches` — List of matched chunks
+- `claim_changes` — List of claim changes
+- `tone_shift` — Tone analysis result
+- `risk_flags` — List of flagged risks with severity
+- `recommendations` — Actionable next steps
+- `embedding_backend` — Backend used (tfidf, etc.)
+- `warnings` — Any warnings or fallback notices
 
 ---
 
 ## How It Works
 
-1. **Load**: Read supported text files with encoding fallback
-2. **Chunk**: Split text into reviewable chunks, preserving headings and line ranges
-3. **Embed**: Generate embeddings with TF-IDF (default, fast) or SentenceTransformers (optional, deeper)
-4. **Align**: Match old chunks to new chunks using cosine similarity and heading-aware alignment
-5. **Classify**: Label chunks as unchanged, lightly changed, semantically changed, removed, or added
-6. **Extract**: Identify high-signal claims (numbers, dates, modals, strong phrases, policy terms)
-7. **Risk Analysis**: Apply tone and mode-specific risk heuristics
-8. **Report**: Generate Rich terminal output, JSON, markdown reports, or GitHub Action summaries
+```mermaid
+flowchart TD
+    classDef io fill:#1e3a5f,stroke:#60a5fa,color:#93c5fd,font-weight:bold
+    classDef core fill:#1e1e3f,stroke:#818cf8,color:#c7d2fe
+    classDef embed fill:#2d1b4e,stroke:#a78bfa,color:#ddd6fe
+    classDef out fill:#14532d,stroke:#4ade80,color:#86efac,font-weight:bold
+
+    IN("Input Files\n.md · .txt · .yml · .json"):::io
+
+    subgraph PIPELINE ["Processing Pipeline"]
+        direction TB
+        LOAD["Load\nRead & decode with encoding fallback"]:::core
+        CHUNK["Chunk\nSplit by headings & line ranges"]:::core
+        EMBED{{"Embed"}}:::embed
+        TFIDF["TF-IDF\nFast · Offline · Default"]:::embed
+        ST["SentenceTransformers\nDeep · Optional"]:::embed
+        ALIGN["Align\nCosine similarity chunk matching"]:::core
+        CLASS["Classify\nUnchanged · Changed · Removed · Added"]:::core
+        EXTRACT["Extract\nNumbers · Dates · Modals · Claims"]:::core
+        ANALYZE["Analyze\nTone shifts & mode-specific risk heuristics"]:::core
+    end
+
+    subgraph OUTPUT ["Output Formats"]
+        direction LR
+        TERM["Terminal\nRich display"]:::out
+        JSON["JSON\nMachine-readable"]:::out
+        MD["Markdown\nReport"]:::out
+        GH["GitHub Action\nCI/CD summary"]:::out
+    end
+
+    IN --> LOAD --> CHUNK --> EMBED
+    EMBED -->|Fast path| TFIDF --> ALIGN
+    EMBED -->|Deep path| ST --> ALIGN
+    ALIGN --> CLASS --> EXTRACT --> ANALYZE
+    ANALYZE --> TERM & JSON & MD & GH
+```
 
 ---
 
@@ -435,24 +469,57 @@ Returns a JSON object with:
 SemShift processes semantic drift detection through a unified pipeline:
 
 ```mermaid
-graph TD
-    A["Input Files<br/>md, txt, yml, json"]
-    A -->|Load & Encode| B["File Loader"]
-    B -->|Split| C["Chunker"]
-    C -->|Vectorize| D["Embedding Backend"]
-    D -->|Fast Path| E1["TF-IDF"]
-    D -->|Deep Path| E2["SentenceTransformers"]
-    E1 -->|Cosine Similarity| F["Semantic Matcher"]
-    E2 -->|Cosine Similarity| F
-    F -->|Chunk Classification| G["Classifier"]
-    G -->|Extract Signals| H["Claim Extractor"]
-    H -->|Mode-Specific Heuristics| I["Risk Analyzer"]
-    I -->|Tone Analysis| J["Tone Analyzer"]
-    J -->|Aggregate Results| K["Report Generator"]
-    K -->|Terminal| L1["Rich Display"]
-    K -->|JSON| L2["JSON Output"]
-    K -->|Markdown| L3["Report"]
-    K -->|Action| L4["GitHub Action"]
+flowchart TD
+    classDef io fill:#1e3a5f,stroke:#60a5fa,color:#93c5fd,font-weight:bold
+    classDef ingest fill:#0f2a3f,stroke:#38bdf8,color:#7dd3fc
+    classDef embed fill:#2d1b4e,stroke:#a78bfa,color:#ddd6fe
+    classDef analysis fill:#1e1e3f,stroke:#818cf8,color:#c7d2fe
+    classDef gen fill:#1a2832,stroke:#34d399,color:#6ee7b7
+    classDef out fill:#14532d,stroke:#4ade80,color:#86efac,font-weight:bold
+
+    IN("Input Files\n.md · .txt · .yml · .json"):::io
+
+    subgraph INGEST ["Ingestion"]
+        FL["File Loader\nRead & decode files"]:::ingest
+        CK["Chunker\nSegment by headings & line ranges"]:::ingest
+    end
+
+    subgraph EMBED_GRP ["Embedding"]
+        EB{{"Backend\nSelector"}}:::embed
+        TF["TF-IDF\nFast · Offline · Default"]:::embed
+        ST["SentenceTransformers\nDeep · Optional"]:::embed
+    end
+
+    subgraph ANALYSIS ["Analysis Pipeline"]
+        SM["Semantic Matcher\nCosine similarity matching"]:::analysis
+        CL["Classifier\nChunk change labeling"]:::analysis
+        CE["Claim Extractor\nNumbers · Modals · Policy terms"]:::analysis
+        RA["Risk Analyzer\nMode-specific heuristics"]:::analysis
+        TA["Tone Analyzer\nTone shift detection"]:::analysis
+    end
+
+    subgraph OUT_GRP ["Output"]
+        direction LR
+        RG["Report Generator\nAggregation & formatting"]:::gen
+        O1["Rich Display\nTerminal"]:::out
+        O2["JSON Output\nMachine-readable"]:::out
+        O3["Markdown\nReport file"]:::out
+        O4["GitHub Action\nCI/CD summary"]:::out
+    end
+
+    IN -->|Load & encode| FL
+    FL -->|Split| CK
+    CK -->|Vectorize| EB
+    EB -->|Fast path| TF
+    EB -->|Deep path| ST
+    TF -->|Cosine similarity| SM
+    ST -->|Cosine similarity| SM
+    SM -->|Chunk classification| CL
+    CL -->|Extract signals| CE
+    CE -->|Mode heuristics| RA
+    RA -->|Tone analysis| TA
+    TA -->|Aggregate results| RG
+    RG --> O1 & O2 & O3 & O4
 ```
 
 **Key Pipeline Features**
@@ -464,33 +531,13 @@ graph TD
 
 ---
 
-## Demo & Assets
+## Supported File Types
 
-### Visualizing SemShift
-
-We provide demo files in the `examples/` directory to test SemShift:
-
-```bash
-# Run a quick demo
-semshift compare examples/old_policy.md examples/new_policy.md --mode policy --model tfidf
-```
-
-### Adding a Demo GIF
-
-To showcase SemShift in action, add a demo GIF to the repository:
-
-1. **Record a demo**: Capture terminal output showing `semshift compare` command with rich formatting
-2. **Save to assets**: Place the GIF file in `assets/demo.gif`
-3. **Update README**: Embed the GIF with:
-   ```markdown
-   ![SemShift Demo](assets/demo.gif)
-   ```
-
-**Asset Guidelines**:
-- Place demo GIFs and screenshots in `assets/` folder
-- Use descriptive filenames: `demo.gif`, `policy-example.png`, etc.
-- Optimize GIF/PNG size for web (< 5MB recommended)
-- Include alt text in markdown for accessibility
+- `.md`, `.rst` — Markdown / reStructuredText
+- `.txt` — Plain text
+- `.yml`, `.yaml` — YAML
+- `.json` — JSON
+- `.py`, `.js`, `.ts` — Source code
 
 ---
 
@@ -504,16 +551,6 @@ To showcase SemShift in action, add a demo GIF to the repository:
 - Not a plagiarism detector or paraphrasing tool
 
 **SemShift is a review assistant.** It finds likely semantic drift and explains why a human should inspect it.
-
----
-
-## Supported File Types
-
-- `.md`, `.rst` (Markdown / reStructuredText)
-- `.txt` (Plain text)
-- `.yml`, `.yaml` (YAML)
-- `.json` (JSON)
-- `.py`, `.js`, `.ts` (Source code)
 
 ---
 
@@ -582,9 +619,9 @@ See [SECURITY.md](SECURITY.md) for the full security policy.
 
 ## Community
 
-- [Issues](https://github.com/VeerajSai/semshift/issues) - Report bugs or request features
-- [Discussions](https://github.com/VeerajSai/semshift/discussions) - Ask questions or share ideas
-- [Changelog](CHANGELOG.md) - See what's new in each release
+- [Issues](https://github.com/VeerajSai/semshift/issues) — Report bugs or request features
+- [Discussions](https://github.com/VeerajSai/semshift/discussions) — Ask questions or share ideas
+- [Changelog](CHANGELOG.md) — See what's new in each release
 
 ---
 
