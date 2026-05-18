@@ -1,2 +1,2 @@
-﻿"""Integrations for semshift."""
+"""Integrations for semshift."""
 

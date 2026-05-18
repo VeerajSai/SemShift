@@ -1,4 +1,4 @@
-﻿"""File loading for SemShift text inputs."""
+"""File loading for SemShift text inputs."""
 
 from __future__ import annotations
 

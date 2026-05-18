@@ -1,4 +1,4 @@
-﻿"""GitHub Action entrypoint for semshift."""
+"""GitHub Action entrypoint for semshift."""
 
 from __future__ import annotations
 

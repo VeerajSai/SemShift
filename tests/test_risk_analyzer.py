@@ -1,4 +1,4 @@
-﻿from semshift import compare_text
+from semshift import compare_text
 
 
 def test_policy_mode_flags_consent_and_sensitive_data_expansion() -> None:

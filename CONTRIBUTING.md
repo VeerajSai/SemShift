@@ -1,4 +1,4 @@
-﻿# Contributing
+# Contributing
 
 Thanks for helping make SemShift sharper.
 

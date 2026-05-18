@@ -1,4 +1,4 @@
-﻿"""Command-line interface for semshift."""
+"""Command-line interface for semshift."""
 
 from __future__ import annotations
 

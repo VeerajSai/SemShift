@@ -1,4 +1,4 @@
-﻿from semshift.core.chunker import chunk_text
+from semshift.core.chunker import chunk_text
 
 
 def test_chunk_markdown_uses_headings_and_line_ranges() -> None:

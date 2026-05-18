@@ -1,4 +1,4 @@
-﻿"""Mode definitions for product-specific semantic drift analysis."""
+"""Mode definitions for product-specific semantic drift analysis."""
 
 from __future__ import annotations
 

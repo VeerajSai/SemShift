@@ -1,4 +1,4 @@
-﻿"""Lightweight heuristic claim extraction and claim comparison."""
+"""Lightweight heuristic claim extraction and claim comparison."""
 
 from __future__ import annotations
 

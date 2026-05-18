@@ -1,2 +1,2 @@
-﻿"""Utility helpers for semshift."""
+"""Utility helpers for semshift."""
 

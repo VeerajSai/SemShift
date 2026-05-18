@@ -1,4 +1,4 @@
-﻿"""Chunk text into reviewable semantic units."""
+"""Chunk text into reviewable semantic units."""
 
 from __future__ import annotations
 

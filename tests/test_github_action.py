@@ -1,4 +1,4 @@
-﻿from semshift import compare_text
+from semshift import compare_text
 from semshift.integrations.github_action import (
     _combined_markdown,
     _pr_comment_body,

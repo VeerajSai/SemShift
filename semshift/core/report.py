@@ -1,4 +1,4 @@
-﻿"""Rich, JSON, and markdown reporting."""
+"""Rich, JSON, and markdown reporting."""
 
 from __future__ import annotations
 

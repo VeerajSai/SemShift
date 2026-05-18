@@ -1,4 +1,4 @@
-﻿"""Mode-specific risk shift detection."""
+"""Mode-specific risk shift detection."""
 
 from __future__ import annotations
 

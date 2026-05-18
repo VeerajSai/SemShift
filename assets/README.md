@@ -1,4 +1,4 @@
-﻿# Assets for SemShift
+# Assets for SemShift
 
 This directory contains visual assets used in the main README and documentation.
 

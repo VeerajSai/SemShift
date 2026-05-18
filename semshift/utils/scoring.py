@@ -1,4 +1,4 @@
-﻿"""Shared scoring helpers."""
+"""Shared scoring helpers."""
 
 from __future__ import annotations
 

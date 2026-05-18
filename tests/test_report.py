@@ -1,4 +1,4 @@
-﻿from semshift import compare_text
+from semshift import compare_text
 from semshift.core.report import markdown_report, write_markdown_report
 
 

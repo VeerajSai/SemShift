@@ -1,4 +1,4 @@
-﻿"""Run SemShift as ``python -m semshift``."""
+"""Run SemShift as ``python -m semshift``."""
 
 from semshift.cli import main
 

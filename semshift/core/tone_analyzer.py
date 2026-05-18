@@ -1,4 +1,4 @@
-﻿"""Heuristic tone shift detection."""
+"""Heuristic tone shift detection."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-﻿import json
+import json
 from inspect import signature
 
 from typer.testing import CliRunner

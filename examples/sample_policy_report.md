@@ -1,4 +1,4 @@
-﻿# SemShift Report
+# SemShift Report
 
 **Files:** `examples/old_policy.md` -> `examples/new_policy.md`
 **Mode:** `policy`

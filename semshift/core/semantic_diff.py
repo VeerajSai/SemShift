@@ -1,4 +1,4 @@
-﻿"""Semantic diff orchestration and scoring."""
+"""Semantic diff orchestration and scoring."""
 
 from __future__ import annotations
 

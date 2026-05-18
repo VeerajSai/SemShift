@@ -1,4 +1,4 @@
-﻿from semshift import compare_text
+from semshift import compare_text
 
 
 def test_policy_semantic_drift_flags_risk() -> None:
