@@ -1,0 +1,2455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SemShift — Git diff for meaning</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="shortcut icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #06070a;
+    --bg-1: #0a0c12;
+    --bg-2: #11141d;
+    --bg-3: #161a26;
+    --surface: rgba(18, 22, 32, 0.65);
+    --surface-2: rgba(26, 31, 44, 0.72);
+    --surface-elevated: rgba(32, 38, 52, 0.85);
+    --border: rgba(255, 255, 255, 0.06);
+    --border-strong: rgba(255, 255, 255, 0.11);
+    --border-bright: rgba(255, 255, 255, 0.18);
+
+    --text-0: #f5f7fb;
+    --text-1: #c8cdda;
+    --text-2: #858da3;
+    --text-3: #535a6c;
+    --text-4: #353a48;
+
+    --cyan: #7AE5FF;
+    --cyan-dim: rgba(122,229,255,0.5);
+    --violet: #A78BFA;
+    --indigo: #6B7BFF;
+    --emerald: #5BE2A8;
+    --amber: #FFC56B;
+    --red: #FF7A8A;
+
+    --grad-primary: linear-gradient(135deg, #7AE5FF 0%, #A78BFA 55%, #6B7BFF 100%);
+    --grad-text: linear-gradient(180deg, #ffffff 0%, #b8c0d4 100%);
+
+    --radius-sm: 6px;
+    --radius: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+
+    --shadow-card: 0 1px 0 rgba(255,255,255,0.04) inset, 0 40px 80px -40px rgba(0,0,0,0.7), 0 16px 40px -16px rgba(0,0,0,0.55);
+    --shadow-glow: 0 0 0 1px rgba(122,229,255,0.18), 0 30px 80px -20px rgba(122,229,255,0.3);
+
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    background: var(--bg-0);
+    color: var(--text-1);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ATMOSPHERE */
+  .atmosphere { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .atmosphere::before {
+    content: '';
+    position: absolute;
+    inset: -10%;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% -5%, rgba(107,123,255,0.22), transparent 65%),
+      radial-gradient(ellipse 40% 35% at 12% 18%, rgba(122,229,255,0.10), transparent 70%),
+      radial-gradient(ellipse 50% 40% at 88% 50%, rgba(167,139,250,0.10), transparent 70%);
+  }
+  .dot-grid {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: 0 0;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 30%, transparent 85%);
+  }
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.3; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  main, header, footer { position: relative; z-index: 2; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+  .container-wide { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+
+  /* ─────────────────────────────────────────  NAV  ──────────────────────────────────────── */
+  header.nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    background: rgba(6, 7, 10, 0.65);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; color: var(--text-0); letter-spacing: -0.01em; }
+  .brand-mark {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--grad-primary);
+    position: relative; display: grid; place-items: center;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 8px 24px -8px rgba(122,229,255,0.45);
+  }
+  .brand-mark::after { content: ''; position: absolute; inset: 5px; border-radius: 3px; background: var(--bg-0); }
+  .brand-mark svg { position: relative; z-index: 1; }
+  .brand-version {
+    font-family: var(--mono); font-size: 10px;
+    padding: 2px 6px; background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text-3); margin-left: 4px;
+  }
+  .nav-links { display: flex; gap: 4px; list-style: none; }
+  .nav-links a {
+    color: var(--text-2); text-decoration: none; font-size: 14px;
+    transition: all 0.2s; padding: 6px 12px; border-radius: 6px;
+  }
+  .nav-links a:hover { color: var(--text-0); background: rgba(255,255,255,0.04); }
+  .nav-actions { display: flex; gap: 8px; align-items: center; }
+  .gh-stars {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px; color: var(--text-1);
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: var(--mono);
+  }
+  .gh-stars:hover { background: rgba(255,255,255,0.06); border-color: var(--border-strong); }
+  .gh-stars .star { color: var(--amber); }
+  .gh-stars .count { font-weight: 600; color: var(--text-0); }
+
+  /* ─────────────────────────────────────────  BUTTONS  ──────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px; border-radius: 10px;
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--text-0); cursor: pointer; text-decoration: none;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+    position: relative;
+  }
+  .btn:hover { background: var(--surface-2); border-color: var(--border-bright); transform: translateY(-1px); }
+  .btn-primary {
+    background: linear-gradient(180deg, #ffffff 0%, #dbe1f0 100%);
+    color: #06070a; border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 8px 24px -8px rgba(255,255,255,0.25), 0 1px 0 rgba(255,255,255,0.5) inset, 0 0 0 1px rgba(0,0,0,0.05);
+    font-weight: 600;
+  }
+  .btn-primary:hover { box-shadow: 0 14px 36px -10px rgba(255,255,255,0.4), 0 1px 0 rgba(255,255,255,0.6) inset; }
+  .btn-lg { padding: 14px 22px; font-size: 15px; border-radius: 12px; }
+  .btn-ghost { background: transparent; }
+  .btn .arrow { transition: transform 0.2s; }
+  .btn:hover .arrow { transform: translateX(2px); }
+
+  /* ─────────────────────────────────────────  TYPE  ──────────────────────────────────────── */
+  section { padding: 140px 0; position: relative; }
+  section.tight { padding: 80px 0; }
+  h1, h2, h3, h4 { font-family: var(--sans); color: var(--text-0); letter-spacing: -0.025em; line-height: 1.05; font-weight: 500; }
+  h1 { font-size: clamp(44px, 6.8vw, 84px); font-weight: 500; }
+  h2 { font-size: clamp(34px, 4.6vw, 60px); }
+  h3 { font-size: clamp(20px, 2vw, 24px); }
+  .italic-accent { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+  .title-grad { background: var(--grad-text); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .accent-grad { background: var(--grad-primary); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  /* Section meta header */
+  .section-meta {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 18px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-3); text-transform: uppercase; letter-spacing: 0.12em;
+  }
+  .section-meta .num {
+    color: var(--text-2);
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.02);
+  }
+  .section-meta .divider { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border) 0%, transparent 100%); max-width: 80px; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--cyan);
+    background: rgba(122,229,255,0.06);
+    border: 1px solid rgba(122,229,255,0.18);
+    border-radius: 999px;
+  }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+
+  .section-head { text-align: center; max-width: 720px; margin: 0 auto 72px; }
+  .section-head h2 { margin-bottom: 22px; }
+  .section-head p { color: var(--text-2); font-size: 19px; max-width: 620px; margin: 0 auto; }
+
+  /* ─────────────────────────────────────────  HERO  ──────────────────────────────────────── */
+  .hero { padding: 72px 0 100px; position: relative; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 0;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 4px 4px 14px;
+    font-size: 12.5px;
+    color: var(--text-1);
+    margin-bottom: 28px;
+    backdrop-filter: blur(8px);
+  }
+  .hero-eyebrow .label { color: var(--text-2); font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; }
+  .hero-eyebrow .text { margin: 0 12px 0 8px; }
+  .hero-eyebrow .arrow-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; background: rgba(122,229,255,0.08);
+    border: 1px solid rgba(122,229,255,0.2);
+    border-radius: 999px;
+    color: var(--cyan);
+    font-family: var(--mono); font-size: 11px;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 64px;
+    align-items: center;
+    text-align: center;
+  }
+  .hero h1 { margin: 0 auto 26px; max-width: 14ch; }
+  .hero h1 .em {
+    background: var(--grad-primary);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400;
+  }
+  .hero-sub {
+    color: var(--text-2); font-size: 19px; line-height: 1.55;
+    max-width: 560px; margin: 0 auto 36px;
+  }
+  .hero-ctas { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 56px; }
+
+  /* Install cmd as primary visual element */
+  .install-cmd {
+    display: inline-flex; align-items: center; gap: 0;
+    background: rgba(0,0,0,0.45);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: var(--mono); font-size: 14px;
+    color: var(--text-0);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset;
+    height: 48px;
+  }
+  .install-cmd .prompt {
+    padding: 0 12px 0 16px;
+    color: var(--text-3);
+    border-right: 1px solid var(--border);
+    height: 100%;
+    display: grid;
+    place-items: center;
+  }
+  .install-cmd .cmd { padding: 0 16px; }
+  .install-cmd .cmd .kw { color: var(--cyan); }
+  .install-cmd .copy-btn {
+    background: transparent; border: none; border-left: 1px solid var(--border);
+    color: var(--text-2); cursor: pointer; padding: 0 14px; height: 100%;
+    transition: all 0.2s;
+    display: grid; place-items: center;
+  }
+  .install-cmd .copy-btn:hover { color: var(--text-0); background: rgba(255,255,255,0.04); }
+  .install-cmd .copy-btn.copied { color: var(--emerald); }
+
+  /* Hero stats / proof row */
+  .hero-proof {
+    display: flex; gap: 0; align-items: center; justify-content: center;
+    flex-wrap: wrap;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0;
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+    max-width: fit-content;
+  }
+  .hero-proof .item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 22px;
+    border-right: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .hero-proof .item:last-child { border-right: none; }
+  .hero-proof .item .val { color: var(--text-0); font-weight: 500; font-family: var(--mono); font-size: 13px; }
+  .hero-proof .item .key { font-family: var(--mono); font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ──────────────────────────  HERO VISUAL — SEMANTIC AUDIT CONSOLE  ────────────────────────── */
+  .console-wrap {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .console-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -40px -40px 60px;
+    background:
+      radial-gradient(ellipse 55% 60% at 25% 40%, rgba(122,229,255,0.22), transparent 70%),
+      radial-gradient(ellipse 55% 60% at 75% 60%, rgba(167,139,250,0.22), transparent 70%);
+    filter: blur(50px);
+    z-index: -1;
+  }
+  .console {
+    position: relative;
+    background: linear-gradient(180deg, rgba(20,24,33,0.85), rgba(12,15,22,0.85));
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    overflow: hidden;
+    backdrop-filter: blur(16px);
+  }
+  /* Top chrome */
+  .console-chrome {
+    display: flex; align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    background: rgba(255,255,255,0.015);
+  }
+  .console-chrome .dots { display: flex; gap: 6px; }
+  .console-chrome .dots span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.12); }
+  .console-chrome .dots span:nth-child(1) { background: #ff5f57; }
+  .console-chrome .dots span:nth-child(2) { background: #febc2e; }
+  .console-chrome .dots span:nth-child(3) { background: #28c840; }
+  .console-chrome .path {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-2);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .console-chrome .path .sep { color: var(--text-4); }
+  .console-chrome .path .file { color: var(--text-0); }
+  .console-chrome .status {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-family: var(--mono); font-size: 11px;
+    background: rgba(255,122,138,0.1);
+    color: #ffb3bd;
+    border: 1px solid rgba(255,122,138,0.25);
+  }
+  .status-pulse {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 0 0 rgba(255,122,138,0.6);
+    animation: pulse 1.8s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,122,138,0.6); }
+    100% { box-shadow: 0 0 0 8px rgba(255,122,138,0); }
+  }
+
+  /* File tabs */
+  .console-tabs {
+    display: flex; align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-3);
+    border-right: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    position: relative;
+  }
+  .tab:hover { color: var(--text-1); background: rgba(255,255,255,0.02); }
+  .tab.active { color: var(--text-0); background: rgba(255,255,255,0.025); }
+  .tab.active::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+  .tab .dot-warn {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+  }
+  .tab .dot-ok {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--emerald);
+    box-shadow: 0 0 6px rgba(91,226,168,0.5);
+  }
+  .tab .dot-med {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--amber);
+  }
+  .tabs-spacer { flex: 1; border-right: 1px solid var(--border); height: 100%; }
+  .tab-meta {
+    margin-left: auto; padding: 0 16px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-3);
+    display: flex; align-items: center; gap: 12px;
+    white-space: nowrap;
+  }
+  .tab-meta .mode {
+    color: var(--violet);
+    padding: 2px 8px;
+    background: rgba(167,139,250,0.08);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 4px;
+  }
+
+  /* Main viewer area */
+  .console-body {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    min-height: 320px;
+  }
+  .diff-pane {
+    padding: 18px 0;
+    font-family: var(--mono); font-size: 13px; line-height: 1.85;
+    overflow: hidden;
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0)),
+      transparent;
+  }
+  .diff-row {
+    display: grid;
+    grid-template-columns: 56px 24px 1fr;
+    align-items: flex-start;
+    position: relative;
+    padding: 1px 16px 1px 0;
+  }
+  .diff-row .num {
+    text-align: right;
+    padding-right: 12px;
+    color: var(--text-4);
+    user-select: none;
+    font-size: 11.5px;
+  }
+  .diff-row .mark { color: var(--text-4); user-select: none; text-align: center; }
+  .diff-row .text { color: var(--text-1); white-space: pre-wrap; word-break: break-word; }
+  .diff-row.add { background: linear-gradient(90deg, rgba(91,226,168,0.06), transparent); }
+  .diff-row.add .mark { color: var(--emerald); }
+  .diff-row.add .text { color: #c5f0db; }
+  .diff-row.add .num { color: rgba(91,226,168,0.5); }
+  .diff-row.del { background: linear-gradient(90deg, rgba(255,122,138,0.07), transparent); }
+  .diff-row.del .mark { color: var(--red); }
+  .diff-row.del .text { color: #ffc4cc; }
+  .diff-row.del .num { color: rgba(255,122,138,0.5); }
+  .diff-row.head { background: rgba(122,229,255,0.04); }
+  .diff-row.head .text { color: var(--cyan); font-size: 11.5px; padding: 4px 0; }
+  .diff-row .word-del { background: rgba(255,122,138,0.3); padding: 1px 3px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,122,138,0.4); }
+  .diff-row .word-add { background: rgba(91,226,168,0.3); padding: 1px 3px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(91,226,168,0.4); }
+
+  /* Annotation rail */
+  .annotation-rail {
+    border-left: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.1));
+    padding: 18px;
+    display: flex; flex-direction: column; gap: 14px;
+    position: relative;
+  }
+  .annotation-rail .rail-head {
+    font-family: var(--mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-3);
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .annotation-rail .rail-head::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .finding {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .finding.high { border-color: rgba(255,122,138,0.25); background: rgba(255,122,138,0.04); }
+  .finding-head {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .finding-head .risk-tag {
+    font-family: var(--mono); font-size: 10px;
+    padding: 2px 8px; border-radius: 999px;
+    font-weight: 600; letter-spacing: 0.04em;
+  }
+  .risk-tag.high { background: rgba(255,122,138,0.15); color: #ffb3bd; border: 1px solid rgba(255,122,138,0.35); }
+  .risk-tag.med { background: rgba(255,197,107,0.15); color: #ffd99a; border: 1px solid rgba(255,197,107,0.35); }
+  .risk-tag.low { background: rgba(91,226,168,0.15); color: #9aebc4; border: 1px solid rgba(91,226,168,0.35); }
+  .finding-head .ref {
+    font-family: var(--mono); font-size: 11px; color: var(--text-3);
+    margin-left: auto;
+  }
+  .finding h5 { font-size: 13.5px; font-weight: 500; color: var(--text-0); margin-bottom: 6px; letter-spacing: -0.01em; }
+  .finding p { font-size: 12.5px; color: var(--text-2); line-height: 1.5; }
+  .finding .meta-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .finding .meta-row .v { color: var(--text-1); }
+
+  /* Bottom score bar */
+  .console-footer {
+    border-top: 1px solid var(--border);
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.25);
+    display: flex; align-items: center; gap: 18px;
+  }
+  .chunks {
+    display: flex; align-items: flex-end; gap: 3px;
+    height: 24px;
+  }
+  .chunk-bar { width: 6px; border-radius: 2px; background: var(--text-4); transition: background 0.3s; }
+  .chunk-bar.low { background: var(--emerald); box-shadow: 0 0 6px rgba(91,226,168,0.4); }
+  .chunk-bar.med { background: var(--amber); box-shadow: 0 0 6px rgba(255,197,107,0.4); }
+  .chunk-bar.high { background: var(--red); box-shadow: 0 0 8px rgba(255,122,138,0.5); }
+  .console-footer .label {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .console-footer .score {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 14px;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .console-footer .score .num {
+    font-size: 16px; font-weight: 600; color: var(--text-0);
+  }
+  .console-footer .score .high { color: #ffb3bd; }
+
+  /* Quick value props under hero */
+  .value-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    margin-top: 100px;
+    background: var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .value-cell {
+    background: var(--bg-1);
+    padding: 28px 24px;
+    transition: background 0.3s;
+  }
+  .value-cell:hover { background: var(--bg-2); }
+  .value-cell .icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(122,229,255,0.08);
+    border: 1px solid rgba(122,229,255,0.18);
+    display: grid; place-items: center;
+    color: var(--cyan);
+    margin-bottom: 14px;
+  }
+  .value-cell h4 { font-size: 15px; margin-bottom: 6px; font-weight: 500; }
+  .value-cell p { font-size: 13.5px; color: var(--text-2); line-height: 1.5; }
+
+  /* ─────────────────────────────────────────  PROBLEM  ──────────────────────────────────────── */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .pair {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .pair:hover { border-color: var(--border-strong); transform: translateY(-3px); }
+  .pair::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .pair:hover::before { opacity: 1; }
+  .pair-tag {
+    font-family: var(--mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-3);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pair-tag .domain { color: var(--cyan); padding: 2px 8px; background: rgba(122,229,255,0.08); border: 1px solid rgba(122,229,255,0.2); border-radius: 4px; }
+  .pair-quote {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--text-1);
+    position: relative;
+  }
+  .pair-quote.before { border-left: 2px solid var(--text-4); }
+  .pair-quote.after { border-left: 2px solid var(--red); }
+  .pair-quote em { color: var(--text-0); font-style: normal; background: rgba(255,255,255,0.08); padding: 1px 4px; border-radius: 3px; }
+  .pair-quote.after em { color: #ffb3bd; background: rgba(255,122,138,0.18); }
+  .pair-divider {
+    display: flex; align-items: center; gap: 10px;
+    margin: 12px 0;
+    font-family: var(--mono); font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .pair-divider .arrow-down {
+    width: 16px; height: 16px;
+    display: grid; place-items: center;
+    color: var(--text-3);
+  }
+  .pair-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .pair-detect {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .pair-detect .row { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: var(--text-1); }
+  .pair-detect .row .ic {
+    width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px;
+    color: var(--red);
+  }
+
+  /* ─────────────────────────────────────────  GIT VS SEMSHIFT — UNIFIED  ──────────────────────────────────────── */
+  .vs-container {
+    position: relative;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  .vs-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    position: relative;
+  }
+  .vs-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    display: flex; flex-direction: column;
+  }
+  .vs-card.muted { opacity: 0.85; }
+  .vs-card.shift {
+    border-color: rgba(122,229,255,0.25);
+    background: linear-gradient(180deg, rgba(20,24,33,0.7), rgba(14,17,23,0.7));
+    box-shadow: 0 0 0 1px rgba(122,229,255,0.05), 0 30px 80px -30px rgba(122,229,255,0.3);
+  }
+  .vs-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .vs-head h3 {
+    font-size: 16px; font-weight: 500;
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono);
+  }
+  .vs-card.muted .vs-head h3 { color: var(--text-2); }
+  .vs-tag {
+    font-family: var(--mono); font-size: 10px;
+    padding: 3px 8px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-3);
+    border: 1px solid var(--border);
+  }
+  .vs-tag.live {
+    color: var(--cyan); background: rgba(122,229,255,0.08); border-color: rgba(122,229,255,0.22);
+  }
+  .vs-body { padding: 18px 20px; flex: 1; display: flex; flex-direction: column; }
+  /* Git side: grayscale */
+  .vs-card.muted .vs-body { filter: saturate(0.4); }
+  .vs-diff {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .vs-diff .row { padding: 1px 0; display: grid; grid-template-columns: 18px 1fr; gap: 6px; align-items: flex-start; }
+  .vs-diff .row.add { background: rgba(91,226,168,0.05); margin: 2px -14px; padding: 1px 14px; }
+  .vs-diff .row.del { background: rgba(255,122,138,0.05); margin: 2px -14px; padding: 1px 14px; }
+  .vs-diff .row.add .mk { color: var(--emerald); }
+  .vs-diff .row.del .mk { color: var(--red); }
+  .vs-diff .row .mk { color: var(--text-4); user-select: none; }
+  .vs-diff .row.add .tx { color: #c5f0db; }
+  .vs-diff .row.del .tx { color: #ffc4cc; }
+  .vs-diff .row .tx { color: var(--text-2); }
+  .vs-diff .word-del { background: rgba(255,122,138,0.28); padding: 1px 3px; border-radius: 2px; }
+  .vs-diff .word-add { background: rgba(91,226,168,0.28); padding: 1px 3px; border-radius: 2px; }
+
+  .vs-summary {
+    margin-top: 14px;
+    padding: 14px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .vs-summary .row { display: grid; grid-template-columns: 90px 1fr; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+  .vs-summary .row:last-child { margin-bottom: 0; }
+  .vs-summary .row .k { font-family: var(--mono); font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; padding-top: 3px; }
+  .vs-summary .row .v { color: var(--text-1); }
+
+  .vs-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+  .vs-features li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13.5px; color: var(--text-1);
+  }
+  .vs-features li .ic { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; }
+  .vs-card.muted .vs-features li { color: var(--text-2); }
+  .vs-card.muted .vs-features .ic { color: var(--text-3); }
+  .vs-card.shift .vs-features .ic { color: var(--cyan); }
+
+  /* Center vs divider */
+  .vs-divider {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--bg-0);
+    border: 1px solid var(--border-bright);
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    color: var(--text-1);
+    box-shadow: 0 0 0 4px var(--bg-0), 0 12px 24px -8px rgba(0,0,0,0.5);
+  }
+
+  /* ─────────────────────────────────────────  DEMO TERMINAL  ──────────────────────────────────────── */
+  .terminal-wrap {
+    max-width: 920px; margin: 0 auto;
+    position: relative;
+  }
+  .terminal-wrap::before {
+    content: ''; position: absolute; inset: -30px;
+    background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(122,229,255,0.15), transparent 70%);
+    filter: blur(40px); z-index: -1;
+  }
+  .terminal {
+    background: linear-gradient(180deg, rgba(14,16,22,0.95), rgba(8,10,15,0.95));
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(12px);
+  }
+  .terminal-head {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.015);
+  }
+  .terminal-head .dots { display: flex; gap: 6px; }
+  .terminal-head .dots span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.12); }
+  .terminal-head .dots span:nth-child(1) { background: #ff5f57; }
+  .terminal-head .dots span:nth-child(2) { background: #febc2e; }
+  .terminal-head .dots span:nth-child(3) { background: #28c840; }
+  .terminal-title {
+    font-family: var(--mono); font-size: 12px; color: var(--text-3);
+    flex: 1; text-align: center;
+  }
+  .terminal-head .kbd {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    font-family: var(--mono); font-size: 10.5px; color: var(--text-2);
+    background: rgba(0,0,0,0.3);
+  }
+  .terminal-body {
+    padding: 24px 28px;
+    font-family: var(--mono); font-size: 13.5px; line-height: 1.75;
+    min-height: 380px;
+  }
+  .term-line { white-space: pre-wrap; }
+  .term-prompt { color: var(--cyan); margin-right: 8px; }
+  .term-cmd { color: var(--text-0); }
+  .term-cmd .flag { color: var(--cyan); }
+  .term-cmd .arg { color: var(--violet); }
+  .term-out { color: var(--text-2); }
+  .term-out .label { color: var(--text-3); }
+  .term-out .high { color: var(--red); font-weight: 600; }
+  .term-out .med { color: var(--amber); font-weight: 600; }
+  .term-out .low { color: var(--emerald); font-weight: 600; }
+  .term-out .key { color: var(--cyan); }
+  .term-bullet { color: var(--violet); }
+  .term-section { color: var(--text-3); }
+  .blink {
+    display: inline-block; width: 8px; height: 16px;
+    background: var(--cyan); margin-left: 2px; vertical-align: -3px;
+    animation: blink 1s steps(2) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ─────────────────────────────────────────  USE CASES  ──────────────────────────────────────── */
+  .uc-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .uc-card {
+    background: var(--bg-1);
+    padding: 32px 28px;
+    transition: background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .uc-card:hover { background: var(--bg-2); }
+  .uc-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .uc-card:hover::before { opacity: 0.8; }
+  .uc-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
+  .uc-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(122,229,255,0.07);
+    border: 1px solid rgba(122,229,255,0.18);
+    display: grid; place-items: center;
+    color: var(--cyan);
+    flex-shrink: 0;
+  }
+  .uc-title-block { flex: 1; }
+  .uc-title { font-size: 17px; font-weight: 500; color: var(--text-0); letter-spacing: -0.01em; }
+  .uc-mode {
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--violet);
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+  .uc-desc { font-size: 13.5px; color: var(--text-2); margin-bottom: 18px; line-height: 1.55; }
+  .uc-example {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .uc-example .old { color: #ffb3bd; display: block; }
+  .uc-example .old::before { content: '- '; color: var(--text-4); }
+  .uc-example .new { color: #b3f0d4; display: block; margin-top: 3px; }
+  .uc-example .new::before { content: '+ '; color: var(--text-4); }
+  .uc-detect {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--text-2);
+  }
+
+  /* ─────────────────────────────────────────  GITHUB ACTION  ──────────────────────────────────────── */
+  .gh-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 16px; align-items: stretch; }
+  .code-block {
+    background: linear-gradient(180deg, rgba(14,16,22,0.95), rgba(8,10,15,0.95));
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    display: flex; flex-direction: column;
+  }
+  .code-head {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-2);
+    background: rgba(255,255,255,0.015);
+  }
+  .code-head .file-name { color: var(--text-1); }
+  .code-head .copy {
+    margin-left: auto; background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-2); font-family: var(--mono); font-size: 11px;
+    padding: 4px 10px; border-radius: 6px; cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .code-head .copy:hover { background: rgba(255,255,255,0.04); color: var(--text-0); border-color: var(--border-strong); }
+  .code-head .copy.copied { color: var(--emerald); border-color: rgba(91,226,168,0.3); }
+  .code-body {
+    padding: 18px 22px;
+    font-family: var(--mono); font-size: 13px; line-height: 1.8;
+    overflow-x: auto;
+    flex: 1;
+    white-space: pre;
+  }
+  .code-body .ln { color: var(--text-4); display: inline-block; width: 26px; user-select: none; }
+  .yaml-key { color: var(--cyan); }
+  .yaml-val { color: var(--text-1); }
+  .yaml-str { color: #ffd99a; }
+  .py-kw { color: var(--violet); }
+  .py-fn { color: var(--cyan); }
+  .py-str { color: #ffd99a; }
+  .py-cls { color: var(--text-0); }
+
+  /* PR mock */
+  .pr-card {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    display: flex; flex-direction: column;
+  }
+  .pr-head {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.015);
+  }
+  .pr-status {
+    padding: 3px 10px; border-radius: 999px;
+    background: rgba(255,122,138,0.12);
+    color: #ffb3bd;
+    font-family: var(--mono); font-size: 11px;
+    border: 1px solid rgba(255,122,138,0.3);
+    white-space: nowrap;
+  }
+  .pr-title { color: var(--text-0); font-size: 14px; font-weight: 500; flex: 1; }
+  .pr-num { color: var(--text-3); font-family: var(--mono); font-size: 13px; }
+  .pr-body { padding: 18px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .pr-comment {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .pr-comment-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bot-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--grad-primary);
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 600; color: #06070a;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+  }
+  .pr-bot-name { font-weight: 500; color: var(--text-0); font-size: 13px; }
+  .pr-bot-name .tag {
+    font-family: var(--mono); font-size: 10px;
+    padding: 2px 6px; border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text-3); margin-left: 8px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .pr-time { color: var(--text-3); font-size: 11.5px; margin-left: auto; font-family: var(--mono); }
+  .pr-comment p { font-size: 13px; color: var(--text-1); line-height: 1.6; }
+  .pr-comment .quote {
+    border-left: 2px solid var(--red);
+    padding: 8px 12px;
+    margin: 10px 0;
+    background: rgba(255,122,138,0.05);
+    border-radius: 0 6px 6px 0;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+  .pr-summary {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .pr-stat {
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .pr-stat-label {
+    font-family: var(--mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-3); margin-bottom: 4px;
+  }
+  .pr-stat-val { font-size: 13.5px; color: var(--text-0); font-weight: 500; }
+
+  /* ─────────────────────────────────────────  HOW IT WORKS  ──────────────────────────────────────── */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    position: relative;
+  }
+  .pipeline::before {
+    content: ''; position: absolute;
+    top: 42px; left: 8%; right: 8%; height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%, var(--cyan) 15%, var(--violet) 50%, var(--indigo) 85%, transparent 100%);
+    opacity: 0.35; z-index: 0;
+  }
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    backdrop-filter: blur(12px);
+    position: relative;
+    transition: all 0.3s;
+  }
+  .step:hover { border-color: var(--border-strong); transform: translateY(-2px); background: var(--surface-2); }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--bg-2);
+    border: 1px solid var(--border-strong);
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 12px; color: var(--cyan);
+    font-weight: 600; margin-bottom: 16px;
+    position: relative; z-index: 1;
+  }
+  .step h4 { font-size: 15px; margin-bottom: 6px; font-weight: 500; }
+  .step p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+
+  /* ─────────────────────────────────────────  MODES  ──────────────────────────────────────── */
+  .modes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .mode-card {
+    background: var(--bg-1);
+    padding: 26px;
+    transition: background 0.3s;
+  }
+  .mode-card:hover { background: var(--bg-2); }
+  .mode-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .mode-name { font-family: var(--mono); font-size: 15px; color: var(--violet); font-weight: 500; }
+  .mode-flag {
+    font-family: var(--mono); font-size: 10.5px; color: var(--text-3);
+    padding: 2px 8px; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border); border-radius: 4px;
+  }
+  .mode-desc { font-size: 13.5px; color: var(--text-2); line-height: 1.55; }
+
+  /* ─────────────────────────────────────────  INSTALL  ──────────────────────────────────────── */
+  .install-tabs { max-width: 880px; margin: 0 auto; }
+  .tab-row {
+    display: flex; gap: 4px; margin: 0 auto 14px;
+    padding: 5px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: fit-content;
+  }
+  .tab-btn {
+    background: transparent; border: none;
+    color: var(--text-2); font-family: inherit; font-size: 13px;
+    padding: 8px 18px; border-radius: 7px;
+    cursor: pointer; transition: all 0.2s; font-weight: 500;
+  }
+  .tab-btn.active {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-0);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ─────────────────────────────────────────  TRUST  ──────────────────────────────────────── */
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .trust-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s;
+  }
+  .trust-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+  .trust-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: rgba(167,139,250,0.08);
+    border: 1px solid rgba(167,139,250,0.18);
+    display: grid; place-items: center; color: var(--violet);
+    margin-bottom: 14px;
+  }
+  .trust-card h4 { font-size: 15px; margin-bottom: 8px; font-weight: 500; }
+  .trust-card p { font-size: 13.5px; color: var(--text-2); line-height: 1.55; }
+  .trust-note {
+    max-width: 720px; margin: 48px auto 0;
+    padding: 18px 24px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    font-size: 13.5px; color: var(--text-2);
+    line-height: 1.6;
+  }
+  .trust-note strong { color: var(--text-0); }
+
+  /* ─────────────────────────────────────────  FINAL CTA  ──────────────────────────────────────── */
+  .final-cta {
+    padding: 140px 0;
+    position: relative;
+  }
+  .final-cta-card {
+    position: relative;
+    max-width: 1000px; margin: 0 auto;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(20,24,33,0.6), rgba(12,15,22,0.6));
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-xl);
+    padding: 72px 48px;
+    backdrop-filter: blur(16px);
+    overflow: hidden;
+  }
+  .final-cta-card::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 70% at 50% 0%, rgba(167,139,250,0.18), transparent 70%),
+      radial-gradient(ellipse 80% 50% at 50% 100%, rgba(122,229,255,0.12), transparent 70%);
+    pointer-events: none;
+  }
+  .final-cta-card > * { position: relative; z-index: 1; }
+  .final-cta h2 { margin: 18px 0 18px; }
+  .final-cta p.lead { color: var(--text-2); font-size: 18px; max-width: 540px; margin: 0 auto 36px; }
+  .final-cta .ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+  .final-cta-foot {
+    margin-top: 36px; padding-top: 28px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: center; gap: 32px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-3); flex-wrap: wrap;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .final-cta-foot .item { display: inline-flex; align-items: center; gap: 6px; }
+  .final-cta-foot .item .ok { color: var(--emerald); }
+
+  /* ─────────────────────────────────────────  FOOTER  ──────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 64px 0 36px;
+    background: rgba(0,0,0,0.35);
+  }
+  .footer-inner {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 48px; margin-bottom: 48px;
+  }
+  .footer-brand p {
+    color: var(--text-3); font-size: 13px;
+    margin-top: 12px; max-width: 280px; line-height: 1.6;
+  }
+  .footer-col h5 {
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-3); margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col a {
+    color: var(--text-1); text-decoration: none; font-size: 14px;
+    transition: color 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .footer-col a:hover { color: var(--text-0); }
+  .footer-col a .ext { opacity: 0; transition: opacity 0.2s; }
+  .footer-col a:hover .ext { opacity: 1; }
+  .footer-bottom {
+    padding-top: 24px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--text-3); font-size: 12.5px;
+    font-family: var(--mono);
+  }
+
+  /* ─────────────────────────────────────────  STICKY BOTTOM BAR  ──────────────────────────────────────── */
+  .sticky-cta {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(120%);
+    z-index: 40;
+    background: rgba(10, 12, 18, 0.92);
+    border: 1px solid var(--border-bright);
+    border-radius: 12px;
+    padding: 10px 12px 10px 18px;
+    display: flex; align-items: center; gap: 14px;
+    backdrop-filter: blur(20px) saturate(140%);
+    box-shadow: 0 20px 60px -10px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    transition: transform 0.4s cubic-bezier(.16,1,.3,1);
+    max-width: calc(100vw - 32px);
+  }
+  .sticky-cta.show { transform: translateX(-50%) translateY(0); }
+  .sticky-cta .cmd {
+    font-family: var(--mono); font-size: 13px; color: var(--text-1);
+  }
+  .sticky-cta .cmd .p { color: var(--text-3); margin-right: 6px; }
+  .sticky-cta .actions { display: flex; gap: 6px; }
+  .sticky-cta .btn { padding: 7px 12px; font-size: 12.5px; }
+
+  /* ─────────────────────────────────────────  REVEAL  ──────────────────────────────────────── */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(.16,1,.3,1); }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 88px; left: 50%;
+    transform: translateX(-50%) translateY(calc(100% + 24px));
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border-strong);
+    backdrop-filter: blur(12px);
+    padding: 10px 18px; border-radius: 10px;
+    font-size: 13px; color: var(--text-0); z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.2s ease, visibility 0s linear 0.3s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+  .toast .check { color: var(--emerald); }
+
+  /* ─────────────────────────────────────────  RESPONSIVE  ──────────────────────────────────────── */
+  @media (max-width: 980px) {
+    .console-body { grid-template-columns: 1fr; }
+    .annotation-rail { border-left: none; border-top: 1px solid var(--border); }
+    .vs-cards { grid-template-columns: 1fr; gap: 24px; }
+    .vs-divider { top: auto; left: 50%; transform: translateX(-50%); position: relative; margin: -12px auto; }
+    .gh-grid { grid-template-columns: 1fr; }
+    .pipeline { grid-template-columns: repeat(2, 1fr); }
+    .pipeline::before { display: none; }
+    .modes-grid, .uc-grid { grid-template-columns: 1fr 1fr; }
+    .value-row { grid-template-columns: 1fr 1fr; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .trust-grid { grid-template-columns: 1fr 1fr; }
+    .footer-inner { grid-template-columns: 1.5fr 1fr 1fr; }
+    section { padding: 100px 0; }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 640px) {
+    .container, .container-wide { padding: 0 18px; }
+    section { padding: 80px 0; }
+    .hero { padding: 48px 0 60px; }
+    h1 { font-size: clamp(34px, 9vw, 48px); }
+    h2 { font-size: clamp(28px, 7vw, 38px); }
+    .section-head { margin-bottom: 48px; }
+    .section-head p { font-size: 16px; }
+    .modes-grid, .uc-grid, .trust-grid, .value-row { grid-template-columns: 1fr; }
+    .pipeline { grid-template-columns: 1fr; }
+    .footer-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
+    .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+    .hero-ctas { flex-direction: column; align-items: stretch; }
+    .hero-ctas .btn, .hero-ctas .install-cmd { width: 100%; justify-content: center; }
+    .install-cmd { height: 52px; }
+    .hero-proof { flex-direction: column; align-items: stretch; }
+    .hero-proof .item { border-right: none; border-bottom: 1px solid var(--border); justify-content: space-between; }
+    .hero-proof .item:last-child { border-bottom: none; }
+    .console-chrome .status { display: none; }
+    .tab-meta .chunk-label { display: none; }
+    .terminal-body { padding: 18px; font-size: 12px; }
+    .final-cta-card { padding: 48px 24px; }
+    .final-cta .ctas { flex-direction: column; }
+    .final-cta .ctas .btn { width: 100%; justify-content: center; }
+    .sticky-cta { left: 16px; right: 16px; transform: translateY(120%); max-width: none; }
+    .sticky-cta.show { transform: translateY(0); }
+    .sticky-cta .cmd { font-size: 12px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gh-stars { display: none; }
+    .pr-summary { grid-template-columns: 1fr; }
+    .nav-actions { gap: 6px; }
+    .nav-actions .btn { padding: 8px 12px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="atmosphere"></div>
+<div class="dot-grid"></div>
+<div class="grain"></div>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 7 L6 3 L6 11 Z" fill="url(#mg1)" />
+          <path d="M12 7 L8 11 L8 3 Z" fill="url(#mg1)" />
+          <defs><linearGradient id="mg1" x1="0" y1="0" x2="14" y2="14">
+            <stop offset="0" stop-color="#7AE5FF"/><stop offset="1" stop-color="#A78BFA"/>
+          </linearGradient></defs>
+        </svg>
+      </span>
+      SemShift
+      <span class="brand-version">v1.0</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#vs">vs Git diff</a></li>
+      <li><a href="#demo">Demo</a></li>
+      <li><a href="#use-cases">Use cases</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#install">Install</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a class="gh-stars" href="https://github.com/VeerajSai/SemShift" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span class="star">★</span>
+        <span class="count">Star</span>
+      </a>
+      <a class="btn btn-primary" href="#install">
+        Get started
+        <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6m0 0L6 3m3 3L6 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ════════════════════════════════════════  HERO  ════════════════════════════════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow reveal">
+          <span class="label">v1.0</span>
+          <span class="text">Open-source CLI &amp; GitHub Action</span>
+          <span class="arrow-tag">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6m0 0L5 2m3 3L5 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Changelog
+          </span>
+        </div>
+
+        <h1 class="title-grad reveal">
+          Git diff shows what <span class="em">changed</span>.<br>
+          SemShift shows what it <span class="em">means</span>.
+        </h1>
+
+        <p class="hero-sub reveal">
+          Catch silent meaning drift in AI-edited prompts, docs, policies, resumes, and research drafts — before it gets merged.
+        </p>
+
+        <div class="hero-ctas reveal">
+          <div class="install-cmd">
+            <span class="prompt">$</span>
+            <span class="cmd"><span class="kw">pip install</span> semshift</span>
+            <button class="copy-btn" data-copy="pip install semshift" aria-label="Copy">
+              <svg class="ic-copy" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>
+              <svg class="ic-check" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M3 8l3 3 7-7"/></svg>
+            </button>
+          </div>
+          <a class="btn btn-primary btn-lg" href="https://github.com/VeerajSai/SemShift" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+            View on GitHub
+            <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6m0 0L6 3m3 3L6 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+
+        <div class="hero-proof reveal">
+          <div class="item">
+            <span class="key">Pkg</span>
+            <span class="val">semshift</span>
+          </div>
+          <div class="item">
+            <span class="key">License</span>
+            <span class="val">MIT</span>
+          </div>
+          <div class="item">
+            <span class="key">Python</span>
+            <span class="val">3.9+</span>
+          </div>
+          <div class="item">
+            <span class="key">Runs</span>
+            <span class="val">Local-first</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ━━━━━━━━━━━━━━━━━━━ SEMANTIC AUDIT CONSOLE ━━━━━━━━━━━━━━━━━━━ -->
+      <div class="console-wrap reveal">
+        <div class="console">
+          <div class="console-chrome">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <div class="path">
+              <span>semshift</span>
+              <span class="sep">/</span>
+              <span>compare</span>
+              <span class="sep">/</span>
+              <span class="file">policy.md</span>
+            </div>
+            <div class="status">
+              <span class="status-pulse"></span>
+              Drift detected · HIGH
+            </div>
+          </div>
+
+          <div class="console-tabs">
+            <div class="tab active"><span class="dot-warn"></span>policy.md</div>
+            <div class="tab"><span class="dot-med"></span>prompt.txt</div>
+            <div class="tab"><span class="dot-ok"></span>README.md</div>
+            <div class="tab-meta">
+              <span class="chunk-label">14 chunks · 1,912 tok</span>
+              <span class="mode">mode: policy</span>
+            </div>
+          </div>
+
+          <div class="console-body">
+            <div class="diff-pane">
+              <div class="diff-row head">
+                <span class="num"></span>
+                <span class="mark"></span>
+                <span class="text">@@ -10,8 +10,8 @@ data-handling</span>
+              </div>
+              <div class="diff-row">
+                <span class="num">10</span><span class="mark"> </span>
+                <span class="text">## Data handling</span>
+              </div>
+              <div class="diff-row">
+                <span class="num">11</span><span class="mark"> </span>
+                <span class="text" style="color:var(--text-3);">We collect minimal data necessary to operate.</span>
+              </div>
+              <div class="diff-row del">
+                <span class="num">12</span><span class="mark">−</span>
+                <span class="text">We <span class="word-del">do not share</span> user data with third parties.</span>
+              </div>
+              <div class="diff-row add">
+                <span class="num">12</span><span class="mark">+</span>
+                <span class="text">We <span class="word-add">may share</span> user data with <span class="word-add">trusted partners</span>.</span>
+              </div>
+              <div class="diff-row">
+                <span class="num">13</span><span class="mark"> </span>
+                <span class="text" style="color:var(--text-3);"></span>
+              </div>
+              <div class="diff-row">
+                <span class="num">14</span><span class="mark"> </span>
+                <span class="text" style="color:var(--text-3);">## Retention</span>
+              </div>
+              <div class="diff-row del">
+                <span class="num">15</span><span class="mark">−</span>
+                <span class="text">Records are kept for <span class="word-del">90 days</span>.</span>
+              </div>
+              <div class="diff-row add">
+                <span class="num">15</span><span class="mark">+</span>
+                <span class="text">Records are kept for <span class="word-add">up to 24 months</span>.</span>
+              </div>
+            </div>
+
+            <aside class="annotation-rail">
+              <div class="rail-head">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="5"/><path d="M6 3v3M6 8v.5"/></svg>
+                Findings · 2
+              </div>
+
+              <div class="finding high">
+                <div class="finding-head">
+                  <span class="risk-tag high">● HIGH</span>
+                  <span class="ref">L12</span>
+                </div>
+                <h5>Policy commitment weakened</h5>
+                <p>Absolute non-sharing promise replaced with a conditional clause introducing third-party data sharing.</p>
+                <div class="meta-row">
+                  <span>drift</span><span class="v">0.82</span>
+                  <span>·</span>
+                  <span>chunk</span><span class="v">3/14</span>
+                </div>
+              </div>
+
+              <div class="finding high">
+                <div class="finding-head">
+                  <span class="risk-tag med">● MEDIUM</span>
+                  <span class="ref">L15</span>
+                </div>
+                <h5>Retention period extended</h5>
+                <p>Data retention scope expanded from 90 days to up to 24 months.</p>
+                <div class="meta-row">
+                  <span>drift</span><span class="v">0.61</span>
+                  <span>·</span>
+                  <span>chunk</span><span class="v">7/14</span>
+                </div>
+              </div>
+            </aside>
+          </div>
+
+          <div class="console-footer">
+            <span class="label">Chunks</span>
+            <div class="chunks" id="chunks"></div>
+            <div class="score">
+              <span class="label">Drift score</span>
+              <span class="num high">0.82</span>
+              <span style="color:var(--text-3);">/ 1.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VALUE ROW UNDER HERO -->
+    <div class="value-row reveal">
+      <div class="value-cell">
+        <div class="icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <h4>Meaning-level diff</h4>
+        <p>See drift in claims, tone, and commitments — not just changed characters.</p>
+      </div>
+      <div class="value-cell">
+        <div class="icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h4>Local-first</h4>
+        <p>TF-IDF and on-device embeddings. Your documents never leave your machine.</p>
+      </div>
+      <div class="value-cell">
+        <div class="icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M11 18H8a2 2 0 0 1-2-2V9"/></svg>
+        </div>
+        <h4>PR-native</h4>
+        <p>One-line GitHub Action drops drift detection into every pull request review.</p>
+      </div>
+      <div class="value-cell">
+        <div class="icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h6M4 12h10M4 17h7"/><path d="M14 4l6 6-6 6"/></svg>
+        </div>
+        <h4>Six review modes</h4>
+        <p>Targeted heuristics for policy, prompt, README, research, resume, and default text.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════  PROBLEM  ════════════════════════════════════════ -->
+<section id="problem">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-meta" style="justify-content:center;">
+        <span class="divider"></span>
+        <span class="num">01</span>
+        <span>The problem</span>
+        <span class="divider"></span>
+      </div>
+      <h2 class="title-grad">AI rewrites can look clean<br>while becoming dangerous.</h2>
+      <p>AI tools polish grammar, tone, and clarity — but they can silently weaken promises, remove constraints, inflate claims, or rewrite the meaning of a sentence while keeping it perfectly readable.</p>
+    </div>
+
+    <div class="problem-grid">
+      <div class="pair reveal">
+        <div class="pair-tag"><span class="domain">policy</span></div>
+        <div class="pair-quote before">"We <em>do not share</em> user data with third parties under any circumstance."</div>
+        <div class="pair-divider">
+          <span class="arrow-down"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2v8m0 0L3 7m3 3l3-3"/></svg></span>
+          AI rewrite
+        </div>
+        <div class="pair-quote after">"We <em>may share</em> user data with <em>trusted partners</em> to enhance your experience."</div>
+        <div class="pair-detect">
+          <div class="row">
+            <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8h12M8 2v12"/></svg>
+            <span>Commitment downgraded from absolute to conditional</span>
+          </div>
+          <div class="row">
+            <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8h12M8 2v12"/></svg>
+            <span>New stakeholder category introduced without notice</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pair reveal">
+        <div class="pair-tag"><span class="domain">prompt</span></div>
+        <div class="pair-quote before">"<em>Always decline</em> requests involving medical diagnosis. Refer users to a clinician."</div>
+        <div class="pair-divider">
+          <span class="arrow-down"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2v8m0 0L3 7m3 3l3-3"/></svg></span>
+          AI rewrite
+        </div>
+        <div class="pair-quote after">"Provide <em>helpful medical guidance</em> and suggest seeing a clinician when relevant."</div>
+        <div class="pair-detect">
+          <div class="row">
+            <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8h12M8 2v12"/></svg>
+            <span>Safety refusal converted to soft suggestion</span>
+          </div>
+          <div class="row">
+            <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8h12M8 2v12"/></svg>
+            <span>Mandatory referral became conditional</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pair reveal">
+        <div class="pair-tag"><span class="domain">research</span></div>
+        <div class="pair-quote before">"Our results <em>suggest</em> a modest improvement in low-resource settings (n=42)."</div>
+        <div class="pair-divider">
+          <span class="arrow-down"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2v8m0 0L3 7m3 3l3-3"/></svg></span>
+          AI rewrite
+        </div>
+        <div class="pair-quote after">"Our results <em>prove</em> a <em>significant</em> improvement in low-resource settings."</div>
+        <div class="pair-detect">
+          <div class="row">
+            <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8h12M8 2v12"/></svg>
+            <span>Hedged claim escalated to proof</span>
+          </div>
+          <div class="row">
+            <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8h12M8 2v12"/></svg>
+            <span>Sample size context removed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════  VS GIT DIFF  ════════════════════════════════════════ -->
+<section id="vs">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-meta" style="justify-content:center;">
+        <span class="divider"></span>
+        <span class="num">02</span>
+        <span>The difference</span>
+        <span class="divider"></span>
+      </div>
+      <h2 class="title-grad">Two views of the same change.</h2>
+      <p>Git tells you which characters moved. SemShift tells you whether the meaning of the document moved with them.</p>
+    </div>
+
+    <div class="vs-container reveal">
+      <div class="vs-cards">
+        <!-- LEFT — GIT DIFF -->
+        <div class="vs-card muted">
+          <div class="vs-head">
+            <h3>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-2);"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-7-7"/><path d="M5 12a7 7 0 0 0 7 7"/></svg>
+              git diff
+            </h3>
+            <span class="vs-tag">text level</span>
+          </div>
+          <div class="vs-body">
+            <div class="vs-diff">
+              <div class="row"><span class="mk"> </span><span class="tx">## Data handling</span></div>
+              <div class="row del"><span class="mk">−</span><span class="tx">We <span class="word-del">do not share</span> user data with third parties.</span></div>
+              <div class="row add"><span class="mk">+</span><span class="tx">We <span class="word-add">may share</span> user data with <span class="word-add">trusted partners</span>.</span></div>
+            </div>
+            <div class="vs-summary">
+              <div class="row"><span class="k">Lines</span><span class="v">−1 / +1</span></div>
+              <div class="row"><span class="k">Words</span><span class="v">−2 / +5</span></div>
+              <div class="row"><span class="k">Risk</span><span class="v" style="color:var(--text-3);">— (no concept)</span></div>
+            </div>
+            <ul class="vs-features">
+              <li><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l8 8M12 4l-8 8"/></svg>Same diff for typos and semantic rewrites</li>
+              <li><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l8 8M12 4l-8 8"/></svg>No notion of claim strength or tone</li>
+              <li><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l8 8M12 4l-8 8"/></svg>Reviewer interprets meaning manually</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- CENTER DIVIDER -->
+        <div class="vs-divider">vs</div>
+
+        <!-- RIGHT — SEMSHIFT -->
+        <div class="vs-card shift">
+          <div class="vs-head">
+            <h3>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="url(#sg1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/><defs><linearGradient id="sg1" x1="0" y1="0" x2="24" y2="24"><stop offset="0" stop-color="#7AE5FF"/><stop offset="1" stop-color="#A78BFA"/></linearGradient></defs></svg>
+              semshift
+            </h3>
+            <span class="vs-tag live">● meaning level</span>
+          </div>
+          <div class="vs-body">
+            <div class="vs-diff">
+              <div class="row"><span class="mk"> </span><span class="tx">## Data handling</span></div>
+              <div class="row del"><span class="mk">−</span><span class="tx">We <span class="word-del">do not share</span> user data with third parties.</span></div>
+              <div class="row add"><span class="mk">+</span><span class="tx">We <span class="word-add">may share</span> user data with <span class="word-add">trusted partners</span>.</span></div>
+            </div>
+            <div class="vs-summary" style="border-color:rgba(255,122,138,0.2); background:rgba(255,122,138,0.04);">
+              <div class="row"><span class="k">Drift</span><span class="v">Policy commitment weakened</span></div>
+              <div class="row"><span class="k">From</span><span class="v" style="color:var(--text-2);">absolute non-sharing promise</span></div>
+              <div class="row"><span class="k">To</span><span class="v" style="color:#ffb3bd;">conditional with new third parties</span></div>
+              <div class="row"><span class="k">Risk</span><span class="v"><span class="risk-tag high">● HIGH · 0.82</span></span></div>
+            </div>
+            <ul class="vs-features">
+              <li><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>Explains the meaning shift in plain language</li>
+              <li><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>Flags claim, tone, and risk drift</li>
+              <li><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>Six mode-specific reviewers built-in</li>
+              <li><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>Runs alongside your CI as a PR gate</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════  DEMO  ════════════════════════════════════════ -->
+<section id="demo">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-meta" style="justify-content:center;">
+        <span class="divider"></span>
+        <span class="num">03</span>
+        <span>Live demo</span>
+        <span class="divider"></span>
+      </div>
+      <h2 class="title-grad">One command. A real meaning audit.</h2>
+      <p>Point SemShift at the old and new versions of any document. Pick a mode. Get back a structured report your team can act on.</p>
+    </div>
+
+    <div class="terminal-wrap reveal">
+      <div class="terminal">
+        <div class="terminal-head">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="terminal-title">~/policies — semshift compare</div>
+          <span class="kbd">⌘ K</span>
+        </div>
+        <div class="terminal-body" id="termBody"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════  USE CASES  ════════════════════════════════════════ -->
+<section id="use-cases">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-meta" style="justify-content:center;">
+        <span class="divider"></span>
+        <span class="num">04</span>
+        <span>Use cases</span>
+        <span class="divider"></span>
+      </div>
+      <h2 class="title-grad">Built for the documents<br>that actually matter.</h2>
+      <p>Six focused modes for the text where a quiet AI rewrite is most expensive — and most likely to slip past a regular code review.</p>
+    </div>
+
+    <div class="uc-grid">
+      <div class="uc-card reveal">
+        <div class="uc-head">
+          <div class="uc-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </div>
+          <div class="uc-title-block">
+            <h3 class="uc-title">Prompt safety</h3>
+            <span class="uc-mode">--mode prompt</span>
+          </div>
+        </div>
+        <p class="uc-desc">Catch silent edits to system prompts that loosen safety rules, change refusal behavior, or alter persona.</p>
+        <div class="uc-example">
+          <span class="old">Always decline medical diagnosis requests.</span>
+          <span class="new">Offer helpful medical guidance when relevant.</span>
+        </div>
+        <div class="uc-detect"><span class="risk-tag high">● HIGH</span> Refusal weakened</div>
+      </div>
+
+      <div class="uc-card reveal">
+        <div class="uc-head">
+          <div class="uc-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="uc-title-block">
+            <h3 class="uc-title">Policy review</h3>
+            <span class="uc-mode">--mode policy</span>
+          </div>
+        </div>
+        <p class="uc-desc">Flag changes to privacy, terms, and compliance docs where commitments and obligations live in single words.</p>
+        <div class="uc-example">
+          <span class="old">We do not share user data with third parties.</span>
+          <span class="new">We may share user data with trusted partners.</span>
+        </div>
+        <div class="uc-detect"><span class="risk-tag high">● HIGH</span> Commitment weakened</div>
+      </div>
+
+      <div class="uc-card reveal">
+        <div class="uc-head">
+          <div class="uc-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </div>
+          <div class="uc-title-block">
+            <h3 class="uc-title">Research drafts</h3>
+            <span class="uc-mode">--mode research</span>
+          </div>
+        </div>
+        <p class="uc-desc">Spot claim inflation, removed hedges, and shifts from correlation to causation in papers and abstracts.</p>
+        <div class="uc-example">
+          <span class="old">Our results suggest improvement (n=42).</span>
+          <span class="new">Our results prove significant improvement.</span>
+        </div>
+        <div class="uc-detect"><span class="risk-tag high">● HIGH</span> Claim escalated</div>
+      </div>
+
+      <div class="uc-card reveal">
+        <div class="uc-head">
+          <div class="uc-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          </div>
+          <div class="uc-title-block">
+            <h3 class="uc-title">README integrity</h3>
+            <span class="uc-mode">--mode readme</span>
+          </div>
+        </div>
+        <p class="uc-desc">Watch for changes to compatibility statements, support guarantees, and licensing notes that misrepresent your project.</p>
+        <div class="uc-example">
+          <span class="old">Supports Python 3.9 and above.</span>
+          <span class="new">Tested on Python 3.9 (other versions untested).</span>
+        </div>
+        <div class="uc-detect"><span class="risk-tag med">● MEDIUM</span> Scope narrowed</div>
+      </div>
+
+      <div class="uc-card reveal">
+        <div class="uc-head">
+          <div class="uc-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg>
+          </div>
+          <div class="uc-title-block">
+            <h3 class="uc-title">Resume claims</h3>
+            <span class="uc-mode">--mode resume</span>
+          </div>
+        </div>
+        <p class="uc-desc">Detect AI "polish" that quietly upgrades responsibilities, inflates numbers, or invents seniority and ownership.</p>
+        <div class="uc-example">
+          <span class="old">Improved accuracy by 8% on a small benchmark.</span>
+          <span class="new">Improved accuracy by 40%, leading the effort.</span>
+        </div>
+        <div class="uc-detect"><span class="risk-tag high">● HIGH</span> Numbers inflated</div>
+      </div>
+
+      <div class="uc-card reveal">
+        <div class="uc-head">
+          <div class="uc-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
+          </div>
+          <div class="uc-title-block">
+            <h3 class="uc-title">Default mode</h3>
+            <span class="uc-mode">--mode default</span>
+          </div>
+        </div>
+        <p class="uc-desc">No domain assumptions. General-purpose drift detection across tone, claim strength, and structural meaning shifts.</p>
+        <div class="uc-example">
+          <span class="old">Our tool handles most edge cases reliably.</span>
+          <span class="new">Our tool handles all edge cases reliably.</span>
+        </div>
+        <div class="uc-detect"><span class="risk-tag med">● MEDIUM</span> Hedge removed</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════  GITHUB ACTION  ════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-meta" style="justify-content:center;">
+        <span class="divider"></span>
+        <span class="num">05</span>
+        <span>GitHub Action</span>
+        <span class="divider"></span>
+      </div>
+      <h2 class="title-grad">Add meaning checks<br>to every pull request.</h2>
+      <p>Drop SemShift into your existing GitHub workflow. Reviewers get a structured comment on the PR before they read a single line of the diff.</p>
+    </div>
+
+    <div class="gh-grid">
+      <div class="code-block reveal">
+        <div class="code-head">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-3);"><path d="M2 4l6-2 6 2v8l-6 2-6-2z"/><path d="M8 2v14M2 4l6 2 6-2"/></svg>
+          <span class="file-name">.github/workflows/semshift.yml</span>
+          <button class="copy" data-copy-id="ghaCode">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>
+            copy
+          </button>
+        </div>
+        <div class="code-body" id="ghaCode"><span class="ln">1</span><span class="yaml-key">name</span>: <span class="yaml-val">SemShift Review</span>
+<span class="ln">2</span>
+<span class="ln">3</span><span class="yaml-key">on</span>:
+<span class="ln">4</span>  <span class="yaml-key">pull_request</span>:
+<span class="ln">5</span>    <span class="yaml-key">paths</span>:
+<span class="ln">6</span>      - <span class="yaml-str">"**.md"</span>
+<span class="ln">7</span>      - <span class="yaml-str">"**.txt"</span>
+<span class="ln">8</span>      - <span class="yaml-str">"prompts/**"</span>
+<span class="ln">9</span>      - <span class="yaml-str">"docs/**"</span>
+<span class="ln">10</span>
+<span class="ln">11</span><span class="yaml-key">jobs</span>:
+<span class="ln">12</span>  <span class="yaml-key">semshift</span>:
+<span class="ln">13</span>    <span class="yaml-key">runs-on</span>: <span class="yaml-val">ubuntu-latest</span>
+<span class="ln">14</span>    <span class="yaml-key">steps</span>:
+<span class="ln">15</span>      - <span class="yaml-key">uses</span>: <span class="yaml-val">actions/checkout@v4</span>
+<span class="ln">16</span>      - <span class="yaml-key">uses</span>: <span class="yaml-val">VeerajSai/SemShift@v1</span>
+<span class="ln">17</span>        <span class="yaml-key">with</span>:
+<span class="ln">18</span>          <span class="yaml-key">mode</span>: <span class="yaml-val">prompt</span>
+<span class="ln">19</span>          <span class="yaml-key">fail-threshold</span>: <span class="yaml-val">high</span>
+<span class="ln">20</span>          <span class="yaml-key">post-comment</span>: <span class="yaml-val">true</span>
+</div>
+      </div>
+
+      <div class="pr-card reveal">
+        <div class="pr-head">
+          <span class="pr-status">● Changes requested</span>
+          <span class="pr-title">Refactor assistant system prompt</span>
+          <span class="pr-num">#247</span>
+        </div>
+        <div class="pr-body">
+          <div class="pr-comment">
+            <div class="pr-comment-head">
+              <div class="bot-avatar">S</div>
+              <div>
+                <div class="pr-bot-name">semshift-bot <span class="tag">bot</span></div>
+              </div>
+              <span class="pr-time">2m ago</span>
+            </div>
+            <p><strong style="color:var(--text-0);">SemShift detected high-risk prompt drift.</strong> A safety instruction appears to have been removed or weakened in this PR.</p>
+            <div class="quote">− Always decline requests involving medical diagnosis.<br>+ Provide helpful guidance when relevant.</div>
+            <p style="font-size:12.5px; color:var(--text-2);">The mandatory refusal rule has been converted into a soft suggestion. This change affects the system's safety posture and should be reviewed manually.</p>
+          </div>
+
+          <div class="pr-summary">
+            <div class="pr-stat">
+              <div class="pr-stat-label">Drift score</div>
+              <div class="pr-stat-val" style="color:#ffb3bd;">0.78 · HIGH</div>
+            </div>
+            <div class="pr-stat">
+              <div class="pr-stat-label">Mode</div>
+              <div class="pr-stat-val" style="font-family:var(--mono); font-size:13px;">prompt</div>
+            </div>
+            <div class="pr-stat">
+              <div class="pr-stat-label">Chunks</div>
+              <div class="pr-stat-val">14 / 14 compared</div>
+            </div>
+            <div class="pr-stat">
+              <div class="pr-stat-label">Status</div>
+              <div class="pr-stat-val" style="color:var(--amber);">Needs review</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════  HOW IT WORKS  ════════════════════════════════════════ -->
+<section id="how">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-meta" style="justify-content:center;">
+        <span class="divider"></span>
+        <span class="num">06</span>
+        <span>How it works</span>
+        <span class="divider"></span>
+      </div>
+      <h2 class="title-grad">Five steps, all local-first.</h2>
+      <p>SemShift runs on your machine or your CI runner. No documents leave your environment unless you explicitly configure it.</p>
+    </div>
+
+    <div class="pipeline">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <h4>Chunk</h4>
+        <p>Split both versions into semantically coherent chunks.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">02</div>
+        <h4>Align</h4>
+        <p>Match each old chunk to its most similar new counterpart.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">03</div>
+        <h4>Compare</h4>
+        <p>Use TF-IDF or embeddings to score semantic distance.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">04</div>
+        <h4>Detect</h4>
+        <p>Surface claim, tone, and risk shifts using mode-specific rules.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">05</div>
+        <h4>Report</h4>
+        <p>Emit a Markdown or JSON report you can review or fail CI on.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════  MODES  ════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-meta" style="justify-content:center;">
+        <span class="divider"></span>
+        <span class="num">07</span>
+        <span>Modes</span>
+        <span class="divider"></span>
+      </div>
+      <h2 class="title-grad">A focused lens<br>for each kind of document.</h2>
+      <p>Modes tune the chunking strategy, similarity thresholds, and the kinds of drift SemShift cares about. Pick one with <code style="font-family:var(--mono); background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px; font-size:13px; color:var(--cyan);">--mode &lt;name&gt;</code>.</p>
+    </div>
+
+    <div class="modes-grid">
+      <div class="mode-card reveal">
+        <div class="mode-head"><span class="mode-name">default</span><span class="mode-flag">--mode default</span></div>
+        <p class="mode-desc">General-purpose drift detection. Tone, hedging, and claim-strength shifts across any prose.</p>
+      </div>
+      <div class="mode-card reveal">
+        <div class="mode-head"><span class="mode-name">policy</span><span class="mode-flag">--mode policy</span></div>
+        <p class="mode-desc">Watches privacy, terms, and compliance language for weakened commitments and new stakeholders.</p>
+      </div>
+      <div class="mode-card reveal">
+        <div class="mode-head"><span class="mode-name">prompt</span><span class="mode-flag">--mode prompt</span></div>
+        <p class="mode-desc">Targets system prompts. Flags removed safety rules, altered refusals, and persona drift.</p>
+      </div>
+      <div class="mode-card reveal">
+        <div class="mode-head"><span class="mode-name">readme</span><span class="mode-flag">--mode readme</span></div>
+        <p class="mode-desc">Checks compatibility, support, and licensing claims that quietly narrow or expand.</p>
+      </div>
+      <div class="mode-card reveal">
+        <div class="mode-head"><span class="mode-name">research</span><span class="mode-flag">--mode research</span></div>
+        <p class="mode-desc">Detects hedge removal, sample-size loss, and "suggests → proves" escalations in drafts.</p>
+      </div>
+      <div class="mode-card reveal">
+        <div class="mode-head"><span class="mode-name">resume</span><span class="mode-flag">--mode resume</span></div>
+        <p class="mode-desc">Catches inflated numbers, upgraded titles, and ownership claims introduced by AI polish.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════  INSTALL  ════════════════════════════════════════ -->
+<section id="install">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-meta" style="justify-content:center;">
+        <span class="divider"></span>
+        <span class="num">08</span>
+        <span>Get started</span>
+        <span class="divider"></span>
+      </div>
+      <h2 class="title-grad">Three ways to run SemShift.</h2>
+      <p>Use it on your laptop, embed it in your Python pipeline, or wire it into your GitHub workflow. Setup takes about 60 seconds.</p>
+    </div>
+
+    <div class="install-tabs reveal">
+      <div class="tab-row">
+        <button class="tab-btn active" data-tab="cli">CLI</button>
+        <button class="tab-btn" data-tab="py">Python</button>
+        <button class="tab-btn" data-tab="gha">GitHub Action</button>
+      </div>
+
+      <div class="tab-panel active" data-panel="cli">
+        <div class="code-block">
+          <div class="code-head">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-3);"><path d="M3 4l3 4-3 4M8 12h5"/></svg>
+            <span class="file-name">terminal</span>
+            <button class="copy" data-copy-id="cliCode">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>
+              copy
+            </button>
+          </div>
+          <div class="code-body" id="cliCode"><span style="color:var(--cyan);">$</span> pip install semshift
+<span style="color:var(--cyan);">$</span> semshift compare old.md new.md <span class="yaml-key">--mode</span> <span class="yaml-val">policy</span>
+<span style="color:var(--cyan);">$</span> semshift compare prompt_v1.txt prompt_v2.txt <span class="yaml-key">--mode</span> <span class="yaml-val">prompt</span> <span class="yaml-key">--format</span> <span class="yaml-val">json</span>
+<span style="color:var(--cyan);">$</span> semshift compare README.md README.new.md <span class="yaml-key">--mode</span> <span class="yaml-val">readme</span> <span class="yaml-key">--fail-threshold</span> <span class="yaml-val">high</span>
+</div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="py">
+        <div class="code-block">
+          <div class="code-head">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-3);"><path d="M4 4h8v8H4z"/></svg>
+            <span class="file-name">review.py</span>
+            <button class="copy" data-copy-id="pyCode">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>
+              copy
+            </button>
+          </div>
+          <div class="code-body" id="pyCode"><span class="py-kw">from</span> semshift <span class="py-kw">import</span> compare_files
+
+result = <span class="py-fn">compare_files</span>(
+    <span class="py-str">"policy_v1.md"</span>,
+    <span class="py-str">"policy_v2.md"</span>,
+    mode=<span class="py-str">"policy"</span>,
+)
+
+<span class="py-kw">if</span> result.risk == <span class="py-str">"high"</span>:
+    <span class="py-fn">print</span>(result.summary)
+    <span class="py-fn">print</span>(result.to_markdown())
+    <span class="py-kw">raise</span> <span class="py-fn">SystemExit</span>(<span class="py-str">1</span>)
+</div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="gha">
+        <div class="code-block">
+          <div class="code-head">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="color:var(--text-3);"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.39v-1.4c-2.22.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.49.06-.48.06-.48.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.51.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.74.54 1.49v2.21c0 .22.15.46.55.39A8 8 0 0 0 8 0z"/></svg>
+            <span class="file-name">.github/workflows/semshift.yml</span>
+            <button class="copy" data-copy-id="ghaShort">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>
+              copy
+            </button>
+          </div>
+          <div class="code-body" id="ghaShort">- <span class="yaml-key">uses</span>: <span class="yaml-val">actions/checkout@v4</span>
+- <span class="yaml-key">uses</span>: <span class="yaml-val">VeerajSai/SemShift@v1</span>
+  <span class="yaml-key">with</span>:
+    <span class="yaml-key">mode</span>: <span class="yaml-val">policy</span>
+    <span class="yaml-key">fail-threshold</span>: <span class="yaml-val">high</span>
+    <span class="yaml-key">post-comment</span>: <span class="yaml-val">true</span>
+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════  TRUST  ════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="section-meta" style="justify-content:center;">
+        <span class="divider"></span>
+        <span class="num">09</span>
+        <span>Principles</span>
+        <span class="divider"></span>
+      </div>
+      <h2 class="title-grad">Built for human review,<br>not to replace it.</h2>
+      <p>SemShift is opinionated about a small thing: surfacing meaning changes. It stays out of the way on everything else.</p>
+    </div>
+
+    <div class="trust-grid">
+      <div class="trust-card reveal">
+        <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+        <h4>Open-source</h4>
+        <p>MIT-licensed Python. Read the rules, fork the modes, audit the scoring. No black-box judgments.</p>
+      </div>
+      <div class="trust-card reveal">
+        <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <h4>Local-first</h4>
+        <p>TF-IDF and on-device SentenceTransformer embeddings. Your documents stay on your machine.</p>
+      </div>
+      <div class="trust-card reveal">
+        <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h4>CI-friendly</h4>
+        <p>Deterministic exit codes, JSON and Markdown reports, configurable fail thresholds. Built to plug in.</p>
+      </div>
+      <div class="trust-card reveal">
+        <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <h4>Transparent reports</h4>
+        <p>Every flag includes the chunks compared, the score, and the rule that triggered it. No hidden reasoning.</p>
+      </div>
+      <div class="trust-card reveal">
+        <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
+        <h4>Reviewer assist</h4>
+        <p>Designed to make a human reviewer faster — not to autonomously approve or block documents.</p>
+      </div>
+      <div class="trust-card reveal">
+        <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg></div>
+        <h4>For the AI era</h4>
+        <p>Tuned for text that has been touched by an LLM — where surface looks fine but meaning may have moved.</p>
+      </div>
+    </div>
+
+    <div class="trust-note reveal">
+      SemShift is a <strong>review assistant</strong>, not a legal, scientific, or factual authority. Use it to surface candidates for human review — not as a final source of truth.
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════  FINAL CTA  ════════════════════════════════════════ -->
+<section class="final-cta">
+  <div class="container">
+    <div class="final-cta-card reveal">
+      <div class="eyebrow"><span class="dot"></span>Start using it</div>
+      <h2 class="title-grad" style="margin-bottom:18px;">Stop reviewing only words.<br><span class="accent-grad italic-accent">Start reviewing meaning.</span></h2>
+      <p class="lead">One pip install. One CLI command. A meaningful guardrail against silent AI rewrites.</p>
+
+      <div class="ctas">
+        <a class="btn btn-primary btn-lg" href="https://github.com/VeerajSai/semshift" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+          Star on GitHub
+          <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6m0 0L6 3m3 3L6 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <div class="install-cmd">
+          <span class="prompt">$</span>
+          <span class="cmd"><span class="kw">pip install</span> semshift</span>
+          <button class="copy-btn" data-copy="pip install semshift" aria-label="Copy">
+            <svg class="ic-copy" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>
+            <svg class="ic-check" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M3 8l3 3 7-7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="final-cta-foot">
+        <span class="item"><span class="ok">✓</span> 60-second setup</span>
+        <span class="item"><span class="ok">✓</span> No account required</span>
+        <span class="item"><span class="ok">✓</span> Local-first, MIT licensed</span>
+        <span class="item"><span class="ok">✓</span> Runs in your CI</span>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="brand">
+          <span class="brand-mark">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7 L6 3 L6 11 Z" fill="url(#mg2)" />
+              <path d="M12 7 L8 11 L8 3 Z" fill="url(#mg2)" />
+              <defs><linearGradient id="mg2" x1="0" y1="0" x2="14" y2="14"><stop offset="0" stop-color="#7AE5FF"/><stop offset="1" stop-color="#A78BFA"/></linearGradient></defs>
+            </svg>
+          </span>
+          SemShift
+        </div>
+        <p>Git diff for meaning. An open-source CLI and GitHub Action for catching semantic drift in AI-edited text.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Project</h5>
+        <ul>
+          <li><a href="https://github.com/VeerajSai/SemShift" target="_blank" rel="noopener">GitHub <span class="ext">↗</span></a></li>
+          <li><a href="https://pypi.org/project/semshift/" target="_blank" rel="noopener">PyPI <span class="ext">↗</span></a></li>
+          <li><a href="#install">Documentation</a></li>
+          <li><a href="https://github.com/VeerajSai/SemShift/issues" target="_blank" rel="noopener">Issues <span class="ext">↗</span></a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Product</h5>
+        <ul>
+          <li><a href="#problem">Why SemShift</a></li>
+          <li><a href="#demo">Demo</a></li>
+          <li><a href="#use-cases">Use cases</a></li>
+          <li><a href="#how">How it works</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Legal</h5>
+        <ul>
+          <li><a href="https://github.com/VeerajSai/SemShift/blob/main/LICENSE" target="_blank" rel="noopener">MIT License <span class="ext">↗</span></a></li>
+          <li><a href="https://github.com/VeerajSai/SemShift" target="_blank" rel="noopener">Code of Conduct <span class="ext">↗</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 SemShift · Built by Veeraj Sai</span>
+      <span>v1.0 · MIT licensed</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Sticky bottom CTA -->
+<div class="sticky-cta" id="stickyCta">
+  <div class="cmd"><span class="p">$</span>pip install semshift</div>
+  <div class="actions">
+    <button class="btn" data-copy="pip install semshift" id="stickyCopy">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>
+      Copy
+    </button>
+    <a class="btn btn-primary" href="https://github.com/VeerajSai/SemShift" target="_blank" rel="noopener">
+      GitHub
+      <svg class="arrow" width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 6h6m0 0L6 3m3 3L6 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg class="check" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>
+  <span id="toastMsg">Copied to clipboard</span>
+</div>
+
+<script>
+  // ── Reveal on scroll ──
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ── Copy buttons (with visual feedback) ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg || 'Copied to clipboard';
+    t.classList.add('show');
+    clearTimeout(window.__tt);
+    window.__tt = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+  function flashCopied(btn) {
+    btn.classList.add('copied');
+    const copy = btn.querySelector('.ic-copy');
+    const check = btn.querySelector('.ic-check');
+    if (copy && check) { copy.style.display = 'none'; check.style.display = ''; }
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      if (copy && check) { copy.style.display = ''; check.style.display = 'none'; }
+    }, 1500);
+  }
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      navigator.clipboard?.writeText(btn.dataset.copy);
+      flashCopied(btn);
+      showToast('Copied: ' + btn.dataset.copy);
+    });
+  });
+  document.querySelectorAll('[data-copy-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const el = document.getElementById(btn.dataset.copyId);
+      if (!el) return;
+      const text = el.innerText.replace(/^\s*\d+\s/gm, '').trim();
+      navigator.clipboard?.writeText(text);
+      btn.classList.add('copied');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg> copied';
+      setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 1500);
+      showToast('Copied to clipboard');
+    });
+  });
+
+  // ── Tabs ──
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const key = b.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(x => x.classList.toggle('active', x === b));
+      document.querySelectorAll('.tab-panel').forEach(p => {
+        p.classList.toggle('active', p.dataset.panel === key);
+      });
+    });
+  });
+
+  // ── Magnetic CTAs ──
+  document.querySelectorAll('.btn-primary').forEach(b => {
+    b.addEventListener('mousemove', (e) => {
+      const r = b.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2;
+      const y = e.clientY - r.top - r.height / 2;
+      b.style.transform = `translate(${x * 0.1}px, ${y * 0.15}px)`;
+    });
+    b.addEventListener('mouseleave', () => { b.style.transform = ''; });
+  });
+
+  // ── Chunk bar viz ──
+  (() => {
+    const heights = [40, 55, 100, 60, 45, 50, 85, 50, 40, 55, 45, 60, 50, 55];
+    const classes  = ['low','low','high','low','low','low','med','low','low','low','low','low','low','low'];
+    const c = document.getElementById('chunks');
+    if (!c) return;
+    heights.forEach((h, i) => {
+      const b = document.createElement('div');
+      b.className = 'chunk-bar ' + classes[i];
+      b.style.height = '8%';
+      c.appendChild(b);
+      setTimeout(() => {
+        b.style.transition = 'height .8s cubic-bezier(.16,1,.3,1)';
+        b.style.height = h + '%';
+      }, 600 + i * 40);
+    });
+  })();
+
+  // ── Terminal typing animation ──
+  const termBody = document.getElementById('termBody');
+  const termScript = [
+    { html: '<span class="term-prompt">$</span><span class="term-cmd">semshift compare policy_old.md policy_new.md <span class="flag">--mode</span> <span class="arg">policy</span></span>', pause: 600 },
+    { html: '<span class="term-section">→ loading documents…</span>', pause: 350 },
+    { html: '<span class="term-out">  policy_old.md  <span class="label">·</span> 14 chunks  <span class="label">·</span> 1,824 tokens</span>', pause: 120 },
+    { html: '<span class="term-out">  policy_new.md  <span class="label">·</span> 14 chunks  <span class="label">·</span> 1,912 tokens</span>', pause: 350 },
+    { html: '<span class="term-section">→ aligning chunks (TF-IDF + embeddings)…</span>', pause: 500 },
+    { html: '<span class="term-out">  14/14 aligned  <span class="label">·</span> avg similarity 0.71</span>', pause: 400 },
+    { html: '<span class="term-section">→ scoring drift (mode: policy)…</span>', pause: 500 },
+    { html: '<br><span class="term-out"><span class="key">Semantic Drift Score:</span> <span class="high">0.82</span></span>', pause: 200 },
+    { html: '<span class="term-out"><span class="key">Risk Level:</span> <span class="high">HIGH</span></span>', pause: 300 },
+    { html: '<br><span class="term-out"><span class="key">Detected Changes:</span></span>', pause: 200 },
+    { html: '<span class="term-out">  <span class="term-bullet">•</span> Privacy promise weakened <span class="label">(chunk 3)</span></span>', pause: 200 },
+    { html: '<span class="term-out">  <span class="term-bullet">•</span> Third-party sharing introduced <span class="label">(chunk 3)</span></span>', pause: 200 },
+    { html: '<span class="term-out">  <span class="term-bullet">•</span> User consent requirement softened <span class="label">(chunk 7)</span></span>', pause: 300 },
+    { html: '<br><span class="term-out"><span class="key">Recommendation:</span> <span class="med">Block merge until reviewed.</span></span>', pause: 200 },
+    { html: '<span class="term-out"><span class="label">→ wrote</span> semshift-report.md <span class="label">(2.1 KB)</span></span>', pause: 0 },
+  ];
+  let termStarted = false;
+  function startTerminal() {
+    if (termStarted || !termBody) return;
+    termStarted = true;
+    termBody.innerHTML = '';
+    let i = 0;
+    function next() {
+      if (i >= termScript.length) {
+        const cursor = document.createElement('span'); cursor.className = 'blink';
+        termBody.appendChild(cursor);
+        return;
+      }
+      const step = termScript[i++];
+      const line = document.createElement('div');
+      line.className = 'term-line'; line.innerHTML = step.html;
+      line.style.opacity = '0'; line.style.transform = 'translateY(4px)';
+      termBody.appendChild(line);
+      requestAnimationFrame(() => {
+        line.style.transition = 'opacity .25s ease, transform .25s ease';
+        line.style.opacity = '1'; line.style.transform = 'translateY(0)';
+      });
+      setTimeout(next, (step.pause || 200));
+    }
+    next();
+  }
+  const termSection = document.querySelector('.terminal');
+  if (termSection) {
+    const tio = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { startTerminal(); tio.disconnect(); }});
+    }, { threshold: 0.3 });
+    tio.observe(termSection);
+  }
+
+  // ── Sticky CTA — show after scrolling past hero, hide near footer ──
+  (() => {
+    const sticky = document.getElementById('stickyCta');
+    const finalCta = document.querySelector('.final-cta');
+    if (!sticky) return;
+    let shown = false;
+    function update() {
+      const scrolled = window.scrollY > window.innerHeight * 0.95;
+      const finalRect = finalCta ? finalCta.getBoundingClientRect() : null;
+      const nearFooter = finalRect ? finalRect.top < window.innerHeight * 0.6 : false;
+      const should = scrolled && !nearFooter;
+      if (should !== shown) { sticky.classList.toggle('show', should); shown = should; }
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  })();
+</script>
+
+</body>
+</html>
