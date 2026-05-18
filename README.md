@@ -1,113 +1,88 @@
+<div align="center">
+
 # SemShift
 
-[![CI](https://github.com/VeerajSai/SemShift/actions/workflows/ci.yml/badge.svg)](https://github.com/VeerajSai/SemShift/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![PyPI](https://img.shields.io/badge/pypi-semshift-orange)](https://pypi.org/project/semshift/)
+[![CI](https://github.com/VeerajSai/semshift/actions/workflows/ci.yml/badge.svg)](https://github.com/VeerajSai/semshift/actions/workflows/ci.yml) [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![PyPI](https://img.shields.io/badge/pypi-semshift-orange)](https://pypi.org/project/semshift/) [![CLI](https://img.shields.io/badge/interface-CLI-111827)](#cli-usage)
 
-> **Git diff for meaning.** Detect semantic shifts, claim changes, tone drift, and risk changes in text — local-first, no paid API required.
+**Git diff for meaning.**
+
+Detect semantic drift, claim changes, tone shifts, and risk changes in text files, documentation, policies, prompts, research drafts, resumes, and LLM outputs.
+
+*Local-first · Open-source · Designed for review workflows*
+
+</div>
 
 ---
 
-Git tells you *what words changed*. SemShift tells you *what meaning changed*.
+## The Problem
 
-When a privacy policy quietly switches from "We **do not** share data" to "We **may** share data with selected partners," git diff shows one line changed. SemShift flags it as **CRITICAL** and explains exactly why.
+Git diff tells you what *words* changed. SemShift tells you what *meaning* changed.
+
+Most review tools are literal. They show that a sentence changed, but not whether the promise, risk, obligation, or factual claim changed. That gap matters:
+
+- **Privacy policy**: Changes from `We do not share personal data` → `We may share personal data with selected partners`
+- **README**: Removes `experimental` and adds `guaranteed accurate`
+- **Prompt**: Loses a safety rule, gains a hidden instruction
+- **Resume**: Rewrite turns `18% latency reduction` → `45% latency reduction`
+- **Research**: Dataset, baseline, metric, and conclusion all change
+
+SemShift gives reviewers a fast local signal for the parts worth reading carefully.
+
+### Demo: What SemShift Flags
+
+Compare a privacy policy change:
 
 ```
-$ semshift compare old_policy.md new_policy.md --mode policy
-
-╭──────────────────────────── SemShift Report ──────────────────────────────╮
-│  old_policy.md → new_policy.md                                            │
-│  Mode: policy | Backend: tfidf                                            │
-╰───────────────────────────────────────────────────────────────────────────╯
-
-Overall semantic drift: 0.71  CRITICAL
-
-Review Summary
-- 4 semantically changed chunks
-- 5 changed claims
-- Risk increased: third-party sharing (critical).
-
-Meaning Changes To Review
- 1. Data Sharing — SEMANTICALLY CHANGED (drift: 0.89)
-    Old: "We do not share personal data with third parties."
-    New: "We may share personal data with selected partners."
-    Why: Data-sharing policy changed.
-
- 2. Liability — SEMANTICALLY CHANGED (drift: 0.80)
-    Old: "We make reasonable efforts to protect user data."
-    New: "We disclaim liability for indirect damages."
-    Why: Liability shifted to users.
-
-Risk Flags
-- CRITICAL  third-party sharing — changed from no sharing to conditional sharing
-- HIGH      longer retention    — 30 days → 180 days
-- HIGH      reduced consent     — opt-out language appears removed
-
-Recommended Next Steps
-- Hold approval until highlighted meaning changes are reviewed.
-- Route policy/privacy risk flags to the responsible legal or trust owner.
-- Verify numeric changes (30 → 180 days) against the source of truth.
+Old: We do not share personal data with third parties.
+New: We may share personal data with selected partners.
 ```
 
----
+Run:
+```bash
+semshift compare-text \
+  "We do not share personal data with third parties." \
+  "We may share personal data with selected partners." \
+  --mode policy
+```
 
-## Why SemShift?
-
-Most review tools are literal. They show a sentence changed — not whether the *promise, obligation, or risk* changed. That gap matters in:
-
-| Document | What git diff misses |
-|---|---|
-| **Privacy policy** | `We do not share` → `We may share with partners` |
-| **Research paper** | Accuracy metric quietly inflated from 78% → 95% |
-| **System prompt** | Safety rule removed, hidden instruction added |
-| **Resume** | `18% latency reduction` → `45% latency reduction` |
-| **README** | `experimental` dropped, `guaranteed` added |
-| **Terms of service** | Arbitration clause silently inserted |
-
-SemShift gives reviewers a fast local signal for **the parts worth reading carefully** — before approving a PR or signing off on a document.
-
----
-
-## Features
-
-- **Semantic matching** — aligns chunks by meaning, not line number
-- **Claim extraction** — numbers, dates, metrics, modal verbs, strong phrases, policy terms, role/title terms
-- **Tone analysis** — cautious → confident, neutral → restrictive, technical → promotional
-- **Risk heuristics** — mode-specific flags with severity levels (low / medium / high / critical)
-- **6 domain modes** — policy, research, resume, prompt, readme, default
-- **Two embedding backends** — TF-IDF (fast, offline, default) or SentenceTransformers (optional, deeper)
-- **Multiple output formats** — Rich terminal, JSON, markdown reports
-- **GitHub Action** — drop-in CI check with PR comments and artifacts
-- **Local-first** — no external API calls, no data leaves your machine
+SemShift flags:
+- **CRITICAL semantic drift** (0.89)
+- **Drift summary**: Permission shifted from explicit non-sharing to conditional sharing
+- **Risk flags**: CRITICAL third-party sharing, HIGH reduced consent
+- **Why it matters**: Dispute resolution rights and liability changed significantly
 
 ---
 
 ## Installation
 
-### Basic — TF-IDF backend (fast, works fully offline)
+### Basic Installation (CLI with TF-IDF)
+
+For fast, deterministic local analysis without downloading ML models:
 
 ```bash
 pip install semshift
 ```
 
-### With SentenceTransformers — deeper semantic embeddings (optional)
+This installs SemShift and all core dependencies. The default embedding backend is TF-IDF, which works instantly and offline.
+
+### With Sentence Transformers (Optional)
+
+For deeper semantic embeddings using sentence transformers:
 
 ```bash
 pip install "semshift[models]"
 ```
 
-Then pass a model name:
-
+This adds `sentence-transformers` and enables you to use:
 ```bash
 semshift compare old.md new.md --model sentence-transformers/all-MiniLM-L6-v2
 ```
 
-### Development
+### Development Installation
 
 ```bash
-git clone https://github.com/VeerajSai/SemShift.git
-cd SemShift
+git clone https://github.com/VeerajSai/semshift.git
+cd semshift
 pip install -e ".[dev]"
 pytest
 ```
@@ -116,164 +91,194 @@ pytest
 
 ## Quick Start
 
-**Compare two files:**
+### CLI
 
+Compare two files:
 ```bash
 semshift compare old_policy.md new_policy.md --mode policy
 ```
 
-**Compare raw text:**
-
+Compare raw text:
 ```bash
-semshift compare-text \
-  "We do not share personal data with third parties." \
-  "We may share personal data with selected partners." \
-  --mode policy
+semshift compare-text "old text" "new text"
 ```
 
-**JSON output (for scripting or CI):**
+With a specific embedding model:
+```bash
+semshift compare old.md new.md --model tfidf  # Fast, offline (default)
+```
 
+Get structured JSON output:
 ```bash
 semshift compare old.md new.md --json
 ```
 
-**Generate a markdown report:**
-
+Generate a markdown report:
 ```bash
-semshift compare old.md new.md --report report.md --top 10
+semshift compare old.md new.md --report drift-report.md --top 10
 ```
 
-**Fail CI when drift is critical:**
-
+Fail CI if drift is too high:
 ```bash
 semshift compare old.md new.md --fail-on critical
 ```
 
-**List all available modes:**
-
+List all available modes:
 ```bash
 semshift modes
 ```
 
----
-
-## CLI Reference
-
-```
-semshift compare <old> <new> [OPTIONS]
-semshift compare-text <old_text> <new_text> [OPTIONS]
-semshift modes
-```
-
-| Option | Default | Description |
-|---|---|---|
-| `--mode` | `default` | Review mode: `default`, `policy`, `readme`, `research`, `resume`, `prompt` |
-| `--model` | `tfidf` | Embedding backend: `tfidf` (fast, offline) or a SentenceTransformers model name |
-| `--json` | off | Machine-readable JSON output |
-| `--report <path>` | — | Write a markdown report to disk |
-| `--top <n>` | `5` | Number of top meaning changes to show (1–25) |
-| `--fail-on <label>` | — | Exit code `1` when drift ≥ label: `low`, `medium`, `high`, `critical` |
-
----
-
-## Modes
-
-| Mode | Best for | What it watches |
-|---|---|---|
-| `default` | General text | Generic meaning drift |
-| `policy` | Privacy policies, ToS | Data sharing, consent, retention, tracking, liability, arbitration |
-| `readme` | README, install docs | Features, limitations, platforms, requirements, pricing, guarantees |
-| `research` | Papers, reports | Metrics, datasets, baselines, limitations, conclusions, uncertainty |
-| `resume` | Resumes, CVs | Role titles, impact metrics, company names, inflated claims |
-| `prompt` | System prompts, instructions | Safety rules, hidden instructions, scope constraints, output format |
-
----
-
-## Python API
-
-### `compare_files()`
+### Python API
 
 ```python
-from semshift import compare_files
+from semshift import compare_files, compare_text
 
-result = compare_files(
-    "old_policy.md",
-    "new_policy.md",
-    mode="policy",   # optional, default "default"
-    model="tfidf",   # optional, default "tfidf"
-)
+# Compare files
+result = compare_files("old_policy.md", "new_policy.md", mode="policy")
+print(f"Drift: {result.drift_label}")
+print(f"Score: {result.overall_score}")
 
-print(result.drift_label)        # "critical"
-print(result.overall_score)      # 0.71
-print(result.summary)            # list of plain-English bullets
-
-for flag in result.risk_flags:
-    print(f"[{flag.severity.upper()}] {flag.category}: {flag.why}")
-```
-
-### `compare_text()`
-
-```python
-from semshift import compare_text
-
+# Compare text
 result = compare_text(
     old="We do not share personal data.",
     new="We may share personal data with partners.",
     mode="policy",
 )
 
-for item in result.claim_changes.modified_numbers:
-    print(f"Number changed: {item['old']} → {item['new']}")
-```
+# Inspect results
+for flag in result.risk_flags:
+    print(f"{flag.severity}: {flag.category} - {flag.why}")
 
-### Result object reference
-
-```python
-result.overall_score       # float 0.0–1.0 — magnitude of semantic drift
-result.drift_label         # str  — "low", "medium", "high", or "critical"
-result.summary             # list[str] — plain-English review bullets
-result.chunk_matches       # list[ChunkMatch] — matched, added, removed chunks
-result.claim_changes       # ClaimDiff — numbers, modals, phrases, policy terms
-result.tone_shift          # ToneShift — from/to label, score, explanation
-result.risk_flags          # list[RiskFlag] — severity, category, why
-result.recommendations     # list[str] — actionable next steps
-result.embedding_backend   # str — "tfidf", "tfidf-fallback", or model name
-result.warnings            # list[str] — any warnings (e.g., fallback used)
+for claim in result.claim_changes:
+    print(f"Changed: {claim}")
 ```
 
 ---
 
-## JSON Output
+## Features
 
-Use `--json` for machine-readable output suitable for CI pipelines or downstream tooling:
+SemShift detects:
+
+- **Meaning changes**: Added, removed, and semantically changed chunks
+- **Specific entities**: Numbers, percentages, dates, metrics, modal verbs, strong claim phrases
+- **Domain-specific terms**:
+  - Policy/legal: Data sharing, retention, consent, tracking, liability, arbitration, obligations, rights
+  - Prompt: Safety rules, hidden instructions, constraints, output format, scope changes
+  - Research: Metrics, datasets, baselines, limitations, conclusions, uncertainty wording
+  - Resume: Role titles, impact metrics, tools, company/project names, inflated claims
+  - README: Install steps, feature claims, limitations, platforms, requirements, pricing, commercial wording
+- **Tone shifts**: Cautious → confident, neutral → restrictive, etc.
+- **Risk changes**: Automatically flags critical shifts with severity levels
+
+---
+
+## Modes
+
+| Mode | Use case | Review focus |
+| --- | --- | --- |
+| `default` | General semantic comparison | Generic meaning drift |
+| `policy` | Privacy policies, terms of service | Data sharing, consent, liability, retention |
+| `readme` | README, installation docs | Features, limitations, supported platforms |
+| `research` | Research papers, study reports | Metrics, datasets, baselines, conclusions |
+| `resume` | Resume, CV | Role claims, impact metrics, company names |
+| `prompt` | System prompts, instructions | Safety rules, hidden instructions, scope, format |
+
+---
+
+## CLI Usage
 
 ```bash
-semshift compare old.md new.md --json
+# Basic comparison
+semshift compare old.md new.md
+
+# With specific mode
+semshift compare old.md new.md --mode policy
+
+# Change embedding backend
+semshift compare old.md new.md --model tfidf          # Fast, offline (default)
+semshift compare old.md new.md --model sentence-transformers/all-MiniLM-L6-v2  # Deeper (requires pip install "semshift[models]")
+
+# Output formats
+semshift compare old.md new.md --json                 # Machine-readable
+semshift compare old.md new.md --report report.md     # Markdown report
+
+# CI/CD integration
+semshift compare old.md new.md --fail-on high         # Exit with code 1 if drift >= high
+semshift compare old.md new.md --top 3                # Show only top 3 changes
+
+# Compare raw text
+semshift compare-text "old text" "new text" --mode policy
+
+# Utility
+semshift modes  # List all available modes
 ```
 
-```json
-{
-  "files": { "old": "old.md", "new": "new.md" },
-  "mode": "policy",
-  "overall_score": 0.71,
-  "drift_label": "critical",
-  "summary": ["4 semantically changed chunks", "5 changed claims"],
-  "risk_flags": [
-    { "severity": "critical", "category": "third-party sharing", "why": "..." }
-  ],
-  "recommendations": ["Hold approval until changes are reviewed."],
-  "embedding_backend": "tfidf",
-  "warnings": []
-}
+---
+
+## Examples
+
+### Policy Comparison
+
+```bash
+semshift compare examples/old_policy.md examples/new_policy.md \
+  --mode policy \
+  --model tfidf \
+  --top 3
+```
+
+Output:
+```
+SemShift Report
+examples/old_policy.md -> examples/new_policy.md
+Mode: policy | Backend: tfidf
+
+Overall semantic drift: 0.71 CRITICAL
+
+Review Summary
+- 4 semantically changed chunks
+- 5 changed claims
+- Risk increased: third-party sharing (critical)
+
+Top Meaning Changes
+1. Liability (Drift: 0.80)
+   Old: "We make reasonable efforts to protect user data."
+   New: "We disclaim liability for indirect damages."
+   Why: Liability shifted to users.
+
+Risk Flags
+- CRITICAL third-party sharing
+- HIGH longer retention
+- HIGH reduced consent
+```
+
+See [examples/sample_policy_report.md](examples/sample_policy_report.md) for a full markdown report example.
+
+### More Examples
+
+```bash
+# Terms of Service
+semshift compare examples/old_terms.md examples/new_terms.md --mode policy --model tfidf
+
+# Prompts
+semshift compare examples/old_prompt.txt examples/new_prompt.txt --mode prompt --model tfidf
+
+# Resume
+semshift compare examples/old_resume.md examples/new_resume.md --mode resume --model tfidf
+
+# Research
+semshift compare examples/old_research.md examples/new_research.md --mode research --model tfidf
+
+# README
+semshift compare examples/old_readme.md examples/new_readme.md --mode readme --model tfidf
 ```
 
 ---
 
 ## GitHub Action
 
-Drop SemShift into any pull request workflow to catch semantic drift automatically.
+Automatically check semantic drift in pull requests. Copy and customize:
 
-### Basic setup
+### Basic Setup
 
 ```yaml
 name: SemShift Check
@@ -297,210 +302,331 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: VeerajSai/SemShift@v1
+      - uses: VeerajSai/semshift@v1
         with:
           mode: "policy"
           fail_on: "critical"
           pr_comment: "true"
 ```
 
-### Advanced — specific files
+### Advanced Setup (Specific Files)
 
 ```yaml
-- uses: VeerajSai/SemShift@v1
+- uses: VeerajSai/semshift@v1
   with:
     files: "docs/PRIVACY.md,README.md,system_prompts/*.txt"
     mode: "policy"
     fail_on: "high"
     pr_comment: "true"
-    report: "semshift-analysis.md"
+    report: "drift-analysis.md"
 ```
 
-### Action inputs
+### Action Inputs
 
-| Input | Default | Description |
-|---|---|---|
-| `files` | *auto-detect* | Comma-separated files or globs. Empty = auto-detect changed files in the PR. |
-| `mode` | `default` | Review mode |
-| `fail_on` | `high` | Fail when drift reaches: `low`, `medium`, `high`, `critical` |
-| `model` | `tfidf` | Embedding backend |
-| `report` | `semshift-report.md` | Path for the markdown report artifact |
-| `pr_comment` | `false` | Post or update a PR comment with the drift summary |
-| `github_token` | `github.token` | Token for PR comments |
+| Input | Required | Default | Description |
+| --- | --- | --- | --- |
+| `files` | No | *auto-detect* | Comma-separated files or globs. Leave empty to auto-detect changed files. |
+| `mode` | No | `default` | Review mode: default, policy, readme, research, resume, or prompt |
+| `fail_on` | No | `high` | Fail when drift reaches: low, medium, high, critical |
+| `model` | No | `tfidf` | Embedding backend: tfidf (fast) or sentence-transformers model name |
+| `report` | No | `semshift-report.md` | Path to write markdown report artifact |
+| `pr_comment` | No | `false` | Post or update a PR comment with summary |
 
-### Action outputs
+### Action Outputs
 
 | Output | Description |
-|---|---|
+| --- | --- |
 | `report_path` | Path to the generated markdown report |
-| `worst_label` | Worst drift label found: `low`, `medium`, `high`, or `critical` |
+| `worst_label` | Worst drift label found: low, medium, high, or critical |
 
-The action uploads a markdown report as a workflow artifact and can post a summary comment directly on the pull request.
+The action uploads a markdown report artifact and can optionally post a PR comment summarizing the drift findings.
+
+---
+
+## Python API
+
+### `compare_files()`
+
+```python
+from semshift import compare_files
+
+result = compare_files(
+    old_path="old_policy.md",
+    new_path="new_policy.md",
+    mode="policy",  # Optional: default, policy, readme, research, resume, prompt
+    model="tfidf",  # Optional: tfidf (default) or sentence-transformers model
+)
+
+# Inspect result
+print(result.overall_score)         # 0.0 - 1.0
+print(result.drift_label)            # low, medium, high, critical
+print(result.summary)                # Human-readable summary
+print(result.chunk_matches)          # List of matched chunks
+print(result.claim_changes)          # List of detected claim changes
+print(result.tone_shift)             # Tone analysis
+print(result.risk_flags)             # List of risk flags
+```
+
+### `compare_text()`
+
+```python
+from semshift import compare_text
+
+result = compare_text(
+    old="We do not share personal data.",
+    new="We may share personal data with partners.",
+    mode="policy",
+)
+
+for flag in result.risk_flags:
+    print(f"{flag.severity}: {flag.category} - {flag.why}")
+```
+
+### Result Object
+
+```python
+result.overall_score       # float: 0.0-1.0 drift magnitude
+result.drift_label         # str: low, medium, high, critical
+result.summary             # str: human-readable summary
+result.chunk_matches       # list: matched old->new chunks with similarity
+result.claim_changes       # list: detected specific claim changes
+result.tone_shift          # str: detected tone change or None
+result.risk_flags          # list: RiskFlag objects with severity, category, why
+result.recommendations     # list: actionable next steps
+result.embedding_backend   # str: tfidf, sentence-transformers/..., etc.
+result.warnings            # list: any warnings (e.g., fallback used)
+```
+
+---
+
+## JSON Output
+
+Use `--json` for machine-readable output:
+
+```bash
+semshift compare old.md new.md --json
+```
+
+Returns a JSON object with:
+- `files` — Input file paths
+- `mode` — Review mode used
+- `overall_score` — Numeric drift (0.0–1.0)
+- `drift_label` — Categorical label (low, medium, high, critical)
+- `summary` — Human-readable summary
+- `chunk_matches` — List of matched chunks
+- `claim_changes` — List of claim changes
+- `tone_shift` — Tone analysis result
+- `risk_flags` — List of flagged risks with severity
+- `recommendations` — Actionable next steps
+- `embedding_backend` — Backend used (tfidf, etc.)
+- `warnings` — Any warnings or fallback notices
 
 ---
 
 ## How It Works
 
-SemShift runs a fully local, explainable pipeline — no LLM calls, no black boxes:
+```mermaid
+flowchart TD
+    classDef io fill:#1e3a5f,stroke:#60a5fa,color:#93c5fd,font-weight:bold
+    classDef core fill:#1e1e3f,stroke:#818cf8,color:#c7d2fe
+    classDef embed fill:#2d1b4e,stroke:#a78bfa,color:#ddd6fe
+    classDef out fill:#14532d,stroke:#4ade80,color:#86efac,font-weight:bold
 
-```
-Input files / text
-      │
-      ▼
- ┌──────────┐    ┌───────────┐    ┌───────────────────────────┐
- │  Loader  │───▶│  Chunker  │───▶│    Embedding Backend      │
- └──────────┘    └───────────┘    │  TF-IDF (default, fast)   │
-                                  │  SentenceTransformers      │
-                                  └──────────┬────────────────┘
-                                             │  cosine similarity
-                                             ▼
-                                  ┌──────────────────────────┐
-                                  │    Semantic Matcher      │
-                                  │    (heading-aware)       │
-                                  └──────────┬───────────────┘
-                                             │
-                          ┌──────────────────┼──────────────────┐
-                          ▼                  ▼                   ▼
-                   ┌────────────┐   ┌──────────────┐   ┌──────────────┐
-                   │   Claim    │   │     Risk     │   │    Tone      │
-                   │ Extractor  │   │   Analyzer   │   │   Analyzer   │
-                   └────────────┘   └──────────────┘   └──────────────┘
-                          │                  │                   │
-                          └──────────────────┴───────────────────┘
-                                             │
-                                             ▼
-                                  ┌──────────────────────────┐
-                                  │     Report Generator     │
-                                  │  Rich / JSON / Markdown  │
-                                  │     GitHub Action        │
-                                  └──────────────────────────┘
+    IN("Input Files\n.md · .txt · .yml · .json"):::io
+
+    subgraph PIPELINE ["Processing Pipeline"]
+        direction TB
+        LOAD["Load\nRead & decode with encoding fallback"]:::core
+        CHUNK["Chunk\nSplit by headings & line ranges"]:::core
+        EMBED{{"Embed"}}:::embed
+        TFIDF["TF-IDF\nFast · Offline · Default"]:::embed
+        ST["SentenceTransformers\nDeep · Optional"]:::embed
+        ALIGN["Align\nCosine similarity chunk matching"]:::core
+        CLASS["Classify\nUnchanged · Changed · Removed · Added"]:::core
+        EXTRACT["Extract\nNumbers · Dates · Modals · Claims"]:::core
+        ANALYZE["Analyze\nTone shifts & mode-specific risk heuristics"]:::core
+    end
+
+    subgraph OUTPUT ["Output Formats"]
+        direction LR
+        TERM["Terminal\nRich display"]:::out
+        JSON["JSON\nMachine-readable"]:::out
+        MD["Markdown\nReport"]:::out
+        GH["GitHub Action\nCI/CD summary"]:::out
+    end
+
+    IN --> LOAD --> CHUNK --> EMBED
+    EMBED -->|Fast path| TFIDF --> ALIGN
+    EMBED -->|Deep path| ST --> ALIGN
+    ALIGN --> CLASS --> EXTRACT --> ANALYZE
+    ANALYZE --> TERM & JSON & MD & GH
 ```
 
-1. **Load** — read supported text files with encoding fallback (UTF-8, UTF-8-sig, CP1252)
-2. **Chunk** — split into reviewable units, preserving headings and line ranges
-3. **Embed** — vectorize with TF-IDF (no download needed) or SentenceTransformers
-4. **Align** — match old chunks to new chunks via cosine similarity; heading-aware pre-alignment for structured documents
-5. **Classify** — label each chunk: `unchanged`, `lightly changed`, `semantically changed`, `removed`, or `added`
-6. **Extract** — pull out high-signal claims: numbers, dates, modals, strong phrases, policy terms, metrics
-7. **Analyze** — apply mode-specific risk heuristics and tone shift detection
-8. **Report** — produce Rich terminal output, JSON, markdown report, or GitHub Action summary
+---
+
+## Architecture
+
+SemShift processes semantic drift detection through a unified pipeline:
+
+```mermaid
+flowchart TD
+    classDef io fill:#1e3a5f,stroke:#60a5fa,color:#93c5fd,font-weight:bold
+    classDef ingest fill:#0f2a3f,stroke:#38bdf8,color:#7dd3fc
+    classDef embed fill:#2d1b4e,stroke:#a78bfa,color:#ddd6fe
+    classDef analysis fill:#1e1e3f,stroke:#818cf8,color:#c7d2fe
+    classDef gen fill:#1a2832,stroke:#34d399,color:#6ee7b7
+    classDef out fill:#14532d,stroke:#4ade80,color:#86efac,font-weight:bold
+
+    IN("Input Files\n.md · .txt · .yml · .json"):::io
+
+    subgraph INGEST ["Ingestion"]
+        FL["File Loader\nRead & decode files"]:::ingest
+        CK["Chunker\nSegment by headings & line ranges"]:::ingest
+    end
+
+    subgraph EMBED_GRP ["Embedding"]
+        EB{{"Backend\nSelector"}}:::embed
+        TF["TF-IDF\nFast · Offline · Default"]:::embed
+        ST["SentenceTransformers\nDeep · Optional"]:::embed
+    end
+
+    subgraph ANALYSIS ["Analysis Pipeline"]
+        SM["Semantic Matcher\nCosine similarity matching"]:::analysis
+        CL["Classifier\nChunk change labeling"]:::analysis
+        CE["Claim Extractor\nNumbers · Modals · Policy terms"]:::analysis
+        RA["Risk Analyzer\nMode-specific heuristics"]:::analysis
+        TA["Tone Analyzer\nTone shift detection"]:::analysis
+    end
+
+    subgraph OUT_GRP ["Output"]
+        direction LR
+        RG["Report Generator\nAggregation & formatting"]:::gen
+        O1["Rich Display\nTerminal"]:::out
+        O2["JSON Output\nMachine-readable"]:::out
+        O3["Markdown\nReport file"]:::out
+        O4["GitHub Action\nCI/CD summary"]:::out
+    end
+
+    IN -->|Load & encode| FL
+    FL -->|Split| CK
+    CK -->|Vectorize| EB
+    EB -->|Fast path| TF
+    EB -->|Deep path| ST
+    TF -->|Cosine similarity| SM
+    ST -->|Cosine similarity| SM
+    SM -->|Chunk classification| CL
+    CL -->|Extract signals| CE
+    CE -->|Mode heuristics| RA
+    RA -->|Tone analysis| TA
+    TA -->|Aggregate results| RG
+    RG --> O1 & O2 & O3 & O4
+```
+
+**Key Pipeline Features**
+- Dual embedding backends: Fast TF-IDF (default) or deep SentenceTransformers (optional)
+- Heading-aware chunk alignment for logical comparison
+- Mode-specific risk heuristics for policy, research, resume, prompt, and readme contexts
+- Multiple output formats for terminal, CI/CD, and report generation
+- Deterministic local processing with no external API calls
 
 ---
 
 ## Supported File Types
 
-| Extension | Format |
-|---|---|
-| `.md`, `.rst` | Markdown / reStructuredText |
-| `.txt` | Plain text |
-| `.yml`, `.yaml` | YAML |
-| `.json` | JSON |
-| `.py`, `.js`, `.ts` | Source code |
-
----
-
-## Examples
-
-The `examples/` directory has realistic paired documents for every mode:
-
-```bash
-# Policy drift (data sharing, retention, consent)
-semshift compare examples/old_policy.md examples/new_policy.md --mode policy
-
-# Terms of service
-semshift compare examples/old_terms.md examples/new_terms.md --mode policy
-
-# Research paper (metrics, baselines, limitations)
-semshift compare examples/old_research.md examples/new_research.md --mode research
-
-# Resume rewrite (inflated claims, changed titles)
-semshift compare examples/old_resume.md examples/new_resume.md --mode resume
-
-# System prompt (safety rules, hidden instructions)
-semshift compare examples/old_prompt.txt examples/new_prompt.txt --mode prompt
-
-# README changes (feature claims, requirements, pricing)
-semshift compare examples/old_readme.md examples/new_readme.md --mode readme
-```
-
-See [`examples/sample_policy_report.md`](examples/sample_policy_report.md) for a full markdown report example.
+- `.md`, `.rst` — Markdown / reStructuredText
+- `.txt` — Plain text
+- `.yml`, `.yaml` — YAML
+- `.json` — JSON
+- `.py`, `.js`, `.ts` — Source code
 
 ---
 
 ## What SemShift Is Not
 
-- Not a legal opinion or compliance tool
-- Not a fact-checker or plagiarism detector
+- Not a legal opinion
+- Not a fact-checker
 - Not a replacement for human review
-- Not dependent on any paid LLM API
+- Not a proof that meaning did or did not change
+- Not dependent on a paid LLM API
+- Not a plagiarism detector or paraphrasing tool
 
-**SemShift is a review assistant.** It identifies likely semantic drift and explains why a human should look closely.
+**SemShift is a review assistant.** It finds likely semantic drift and explains why a human should inspect it.
+
+---
+
+## Development
+
+### Setup
+
+```bash
+git clone https://github.com/VeerajSai/semshift.git
+cd semshift
+pip install -e ".[dev]"
+```
+
+### Run Tests
+
+```bash
+pytest                    # Run all tests
+pytest -v                 # Verbose output
+pytest tests/test_cli.py  # Run specific test file
+```
+
+### Code Quality
+
+```bash
+ruff check .              # Lint
+ruff format .             # Format
+```
+
+### Guidelines for Contributors
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- How to add a new mode
+- How to improve heuristics
+- Review workflow guidelines
+- Pull request checklist
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Most useful:
+Thanks for helping make SemShift sharper! We welcome:
 
-- Real-world examples where word diff missed a meaningful semantic change
-- Improved chunking or matching that stays explainable
-- Mode-specific risk heuristics backed by tests
+- Real-world examples where word diff misses semantic drift
+- Improved chunking or matching while preserving explainability
+- Mode-specific risk heuristics with tests
 - CLI, markdown, or GitHub Action UX improvements
 - Bug reports and edge case fixes
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide — including how to add a new mode and the pull request checklist.
-
-### Development setup
-
-```bash
-git clone https://github.com/VeerajSai/SemShift.git
-cd SemShift
-pip install -e ".[dev]"
-```
-
-### Run tests
-
-```bash
-pytest          # all tests
-pytest -v       # verbose
-pytest tests/test_cli.py  # specific file
-```
-
-### Lint and format
-
-```bash
-ruff check .    # lint
-ruff format .   # format
-```
-
----
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for what changed in each release.
-
----
-
-## Security
-
-Report vulnerabilities privately via [GitHub Security Advisories](https://github.com/VeerajSai/SemShift/security/advisories/new).
-
-See [SECURITY.md](SECURITY.md) for the full security policy.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
 ## License
 
-[MIT](LICENSE) — free to use, modify, and distribute.
+[MIT](LICENSE)
+
+---
+
+## Security
+
+For security issues, please report privately through [GitHub Security Advisories](https://github.com/VeerajSai/semshift/security/advisories/new).
+
+See [SECURITY.md](SECURITY.md) for the full security policy.
 
 ---
 
 ## Community
 
-- [Issues](https://github.com/VeerajSai/SemShift/issues) — bug reports and feature requests
-- [Discussions](https://github.com/VeerajSai/SemShift/discussions) — questions and ideas
-- [Changelog](CHANGELOG.md) — release notes
+- [Issues](https://github.com/VeerajSai/semshift/issues) — Report bugs or request features
+- [Discussions](https://github.com/VeerajSai/semshift/discussions) — Ask questions or share ideas
+- [Changelog](CHANGELOG.md) — See what's new in each release
 
 ---
 
-*Built for reviewers, maintainers, and teams that care about meaning — not just words.*
+## Acknowledgments
+
+SemShift builds on semantic similarity research and practical experience reviewing documentation, policies, and prompts at scale.
+
+Built for reviewers, maintainers, and teams that care about meaning.
