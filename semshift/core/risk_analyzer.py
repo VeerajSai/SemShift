@@ -182,8 +182,8 @@ def _policy_risks(old_text: str, new_text: str) -> list[RiskFlag]:
             )
         )
 
-    if _has(new, r"\b(limit(?:ed)? liability|not liable|no liability|disclaim(?:s|er))\b") and not _has(
-        old, r"\b(limit(?:ed)? liability|not liable|no liability|disclaim(?:s|er))\b"
+    if _has(new, r"\b(limit(?:ed)? liability|not liable|no liability|disclaim(?:s|er|ed)?)\b") and not _has(
+        old, r"\b(limit(?:ed)? liability|not liable|no liability|disclaim(?:s|er|ed)?)\b"
     ):
         flags.append(
             RiskFlag(

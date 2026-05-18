@@ -47,7 +47,7 @@ def truncate(text: str, max_chars: int = 220) -> str:
     clean = normalize_whitespace(text)
     if len(clean) <= max_chars:
         return clean
-    return clean[: max_chars - 1].rstrip() + "..."
+    return clean[: max_chars - 3].rstrip() + "..."
 
 
 def quote(text: str, max_chars: int = 220) -> str:
