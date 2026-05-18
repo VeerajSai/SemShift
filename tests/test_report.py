@@ -1,11 +1,17 @@
 """Tests for Rich, JSON, and markdown reporting."""
 
+import io
 import json
 
 from rich.console import Console
 
 from semshift import compare_text
-from semshift.core.report import markdown_report, print_rich_report, result_to_json, write_markdown_report
+from semshift.core.report import (
+    markdown_report,
+    print_rich_report,
+    result_to_json,
+    write_markdown_report,
+)
 
 
 def test_markdown_report_contains_score_breakdown_and_risk_flags(tmp_path) -> None:
@@ -57,14 +63,11 @@ def test_print_rich_report_does_not_raise() -> None:
         mode="policy",
         model="tfidf",
     )
-    console = Console(file=open("/dev/null", "w") if hasattr(__builtins__, "__import__") else None)
-    import io
     console = Console(file=io.StringIO())
     print_rich_report(result, console=console)
 
 
 def test_print_rich_report_with_no_changes_does_not_raise() -> None:
-    import io
     result = compare_text(old="same text", new="same text", model="tfidf")
     console = Console(file=io.StringIO())
     print_rich_report(result, console=console)

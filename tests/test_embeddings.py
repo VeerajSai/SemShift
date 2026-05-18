@@ -1,8 +1,5 @@
 """Tests for embedding backends."""
 
-import numpy as np
-import pytest
-
 from semshift.core.embeddings import embed_texts
 
 

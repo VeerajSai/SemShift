@@ -1,8 +1,8 @@
 """Tests for mode-specific risk flag detection."""
 
 from semshift import compare_text
-from semshift.core.risk_analyzer import RiskFlag, analyze_risk, risk_score
 from semshift.core.claim_extractor import compare_claims
+from semshift.core.risk_analyzer import RiskFlag, analyze_risk, risk_score
 
 
 def test_policy_mode_flags_consent_and_sensitive_data_expansion() -> None:

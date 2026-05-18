@@ -1,14 +1,11 @@
 """Tests for semantic diff orchestration."""
 
-import json
-
 import pytest
 
 from semshift import compare_text
 from semshift.core.loader import FileLoadError
 from semshift.core.semantic_diff import (
     ChunkMatch,
-    SemanticDiffResult,
     chunk_new_text,
     chunk_old_text,
     chunk_section,

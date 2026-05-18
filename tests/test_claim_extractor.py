@@ -1,6 +1,6 @@
 """Tests for claim extraction and comparison."""
 
-from semshift.core.claim_extractor import ClaimDiff, compare_claims, extract_claims
+from semshift.core.claim_extractor import compare_claims, extract_claims
 
 
 def test_extract_claims_numbers_and_percentages() -> None:

@@ -14,12 +14,12 @@ To record a demo GIF:
        agg demo.cast assets/demo.gif
 """
 
-import sys
 import time
+
+from rich.console import Console
 
 from semshift import compare_text
 from semshift.core.report import print_rich_report
-from rich.console import Console
 
 
 def main() -> None:
