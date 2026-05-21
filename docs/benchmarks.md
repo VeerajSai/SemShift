@@ -1,6 +1,6 @@
 # Benchmarks
 
-## Starter Benchmark (self-evaluation, not external validation)
+## Starter Benchmark (self-evaluation, not independent validation)
 
 SemShift includes `benchmarks/semshift_bench_v1.jsonl` as a starter self-evaluation set for regression tracking.
 
@@ -8,8 +8,8 @@ Important guardrails:
 
 - This dataset was created inside the repository.
 - These numbers are for regression tracking.
-- These numbers are not external validation.
-- Human-labeled external evaluation is still needed.
+- These numbers are not independent validation.
+- Human-labeled outside evaluation is still needed.
 - Results should not be used as scientific claims.
 
 Run:

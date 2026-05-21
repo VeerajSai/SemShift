@@ -37,7 +37,7 @@ python scripts/evaluate_benchmark.py benchmarks/semshift_bench_v1.jsonl
 python scripts/run_baselines.py benchmarks/semshift_bench_v1.jsonl
 ```
 
-Do not market starter benchmark numbers as external validation.
+Do not market starter benchmark numbers as independent validation.
 
 ## Adding Or Updating A Mode
 

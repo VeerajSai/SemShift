@@ -151,7 +151,7 @@ def evaluate_examples(examples: list[BenchmarkExample], *, model: str) -> dict[s
 
 def render_results(results: dict[str, Any], output_path: Path) -> None:
     """Render a compact terminal summary with Rich."""
-    table = Table(title="Starter Benchmark (self-evaluation, not external validation)")
+    table = Table(title="Starter Benchmark (self-evaluation, not independent validation)")
     table.add_column("Metric")
     table.add_column("Value", justify="right")
     table.add_row("examples", str(results["metadata"]["example_count"]))

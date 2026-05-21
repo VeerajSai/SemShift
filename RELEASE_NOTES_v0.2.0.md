@@ -26,7 +26,7 @@ The included benchmark is a starter self-evaluation set for regression tracking.
 - Tolerance accuracy: 83.9%.
 - High-risk F1: 88.9%.
 - Benign false-critical: 0%.
-- Benchmark results are for regression tracking only and are not external validation.
+- Benchmark results are for regression tracking only and are not independent validation.
 
 ## 5. Test coverage
 
@@ -38,7 +38,7 @@ The included benchmark is a starter self-evaluation set for regression tracking.
 - README and landing page now describe SemShift as a v0.2.0 alpha local-first review assistant.
 - Documentation clarifies that TF-IDF is a lexical/local deterministic backend.
 - Documentation clarifies that SentenceTransformers is an optional local semantic embedding backend that may download model weights on first use.
-- Benchmark documentation labels the starter benchmark as self-evaluation, not external validation.
+- Benchmark documentation labels the starter benchmark as self-evaluation, not independent validation.
 
 ## 7. Known limitations
 

@@ -1970,7 +1970,7 @@
         </svg>
       </span>
       SemShift
-      <span class="brand-version">v1.0</span>
+      <span class="brand-version">v0.2.0 alpha</span>
     </div>
     <ul class="nav-links">
       <li><a href="#problem">Problem</a></li>
@@ -2002,7 +2002,7 @@
     <div class="hero-grid">
       <div>
         <div class="hero-eyebrow reveal">
-          <span class="label">v1.0</span>
+          <span class="label">v0.2.0 alpha</span>
           <span class="text">Open-source CLI &amp; GitHub Action</span>
           <span class="arrow-tag">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6m0 0L5 2m3 3L5 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2011,12 +2011,12 @@
         </div>
 
         <h1 class="title-grad reveal">
-          Git diff shows <span class="em">changes</span><span class="type-image" aria-hidden="true"></span>.<br>
-          SemShift shows <span class="em">meaning</span>.
+          Git diff shows <span class="em">word changes</span><span class="type-image" aria-hidden="true"></span>.<br>
+          SemShift flags <span class="em">risky meaning changes</span>.
         </h1>
 
         <p class="hero-sub reveal">
-          Catch silent meaning drift in AI-edited prompts, docs, policies, resumes, and research drafts — before it gets merged.
+          Catch likely silent meaning drift in AI-edited prompts, docs, policies, resumes, and research drafts &mdash; before it gets merged.
         </p>
 
         <div class="hero-ctas reveal">
@@ -2046,7 +2046,7 @@
           </div>
           <div class="item">
             <span class="key">Python</span>
-            <span class="val">3.9+</span>
+            <span class="val">3.10+</span>
           </div>
           <div class="item">
             <span class="key">Runs</span>
@@ -2187,7 +2187,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
         <h4>Local-first</h4>
-        <p>TF-IDF and on-device embeddings. Your documents never leave your machine.</p>
+        <p>Local-first by default. TF-IDF runs locally; optional embedding models may download weights on first use.</p>
       </div>
       <div class="value-cell">
         <div class="icon">
@@ -2390,11 +2390,11 @@
       <div class="section-meta" style="justify-content:center;">
         <span class="divider"></span>
         <span class="num">03</span>
-        <span>Live demo</span>
+        <span>Example output</span>
         <span class="divider"></span>
       </div>
-      <h2 class="title-grad">One command. A real meaning audit.</h2>
-      <p>Point SemShift at the old and new versions of any document. Pick a mode. Get back a structured report your team can act on.</p>
+      <h2 class="title-grad">One command. A structured drift report.</h2>
+      <p>Point SemShift at the old and new versions of any document. Pick a mode. Get back a structured review report your team can inspect.</p>
     </div>
 
     <div class="terminal-wrap reveal">
@@ -2491,8 +2491,8 @@
         </div>
         <p class="uc-desc">Watch for changes to compatibility statements, support guarantees, and licensing notes that misrepresent your project.</p>
         <div class="uc-example">
-          <span class="old">Supports Python 3.9 and above.</span>
-          <span class="new">Tested on Python 3.9 (other versions untested).</span>
+          <span class="old">Supports Python 3.10 and above.</span>
+          <span class="new">Tested on Python 3.10 (other versions untested).</span>
         </div>
         <div class="uc-detect"><span class="risk-tag med">● MEDIUM</span> Scope narrowed</div>
       </div>
@@ -2509,7 +2509,7 @@
         </div>
         <p class="uc-desc">Detect AI "polish" that quietly upgrades responsibilities, inflates numbers, or invents seniority and ownership.</p>
         <div class="uc-example">
-          <span class="old">Improved accuracy by 8% on a small benchmark.</span>
+          <span class="old">Improved accuracy by 8% on an internal test.</span>
           <span class="new">Improved accuracy by 40%, leading the effort.</span>
         </div>
         <div class="uc-detect"><span class="risk-tag high">● HIGH</span> Numbers inflated</div>
@@ -2565,21 +2565,29 @@
 <span class="ln">3</span><span class="yaml-key">on</span>:
 <span class="ln">4</span>  <span class="yaml-key">pull_request</span>:
 <span class="ln">5</span>    <span class="yaml-key">paths</span>:
-<span class="ln">6</span>      - <span class="yaml-str">"**.md"</span>
-<span class="ln">7</span>      - <span class="yaml-str">"**.txt"</span>
+<span class="ln">6</span>      - <span class="yaml-str">"**/*.md"</span>
+<span class="ln">7</span>      - <span class="yaml-str">"**/*.txt"</span>
 <span class="ln">8</span>      - <span class="yaml-str">"prompts/**"</span>
 <span class="ln">9</span>      - <span class="yaml-str">"docs/**"</span>
 <span class="ln">10</span>
-<span class="ln">11</span><span class="yaml-key">jobs</span>:
-<span class="ln">12</span>  <span class="yaml-key">semshift</span>:
-<span class="ln">13</span>    <span class="yaml-key">runs-on</span>: <span class="yaml-val">ubuntu-latest</span>
-<span class="ln">14</span>    <span class="yaml-key">steps</span>:
-<span class="ln">15</span>      - <span class="yaml-key">uses</span>: <span class="yaml-val">actions/checkout@v4</span>
-<span class="ln">16</span>      - <span class="yaml-key">uses</span>: <span class="yaml-val">VeerajSai/SemShift@v1</span>
-<span class="ln">17</span>        <span class="yaml-key">with</span>:
-<span class="ln">18</span>          <span class="yaml-key">mode</span>: <span class="yaml-val">prompt</span>
-<span class="ln">19</span>          <span class="yaml-key">fail-threshold</span>: <span class="yaml-val">high</span>
-<span class="ln">20</span>          <span class="yaml-key">post-comment</span>: <span class="yaml-val">true</span>
+<span class="ln">11</span><span class="yaml-key">permissions</span>:
+<span class="ln">12</span>  <span class="yaml-key">contents</span>: <span class="yaml-val">read</span>
+<span class="ln">13</span>  <span class="yaml-key">pull-requests</span>: <span class="yaml-val">write</span>
+<span class="ln">14</span>
+<span class="ln">15</span><span class="yaml-key">jobs</span>:
+<span class="ln">16</span>  <span class="yaml-key">semshift</span>:
+<span class="ln">17</span>    <span class="yaml-key">runs-on</span>: <span class="yaml-val">ubuntu-latest</span>
+<span class="ln">18</span>    <span class="yaml-key">steps</span>:
+<span class="ln">19</span>      - <span class="yaml-key">uses</span>: <span class="yaml-val">actions/checkout@v4</span>
+<span class="ln">20</span>        <span class="yaml-key">with</span>:
+<span class="ln">21</span>          <span class="yaml-key">fetch-depth</span>: <span class="yaml-val">0</span>
+<span class="ln">22</span>      - <span class="yaml-key">uses</span>: <span class="yaml-val">VeerajSai/SemShift@v0.2.0</span>
+<span class="ln">23</span>        <span class="yaml-key">with</span>:
+<span class="ln">24</span>          <span class="yaml-key">mode</span>: <span class="yaml-val">prompt</span>
+<span class="ln">25</span>          <span class="yaml-key">fail_on</span>: <span class="yaml-val">high</span>
+<span class="ln">26</span>          <span class="yaml-key">pr_comment</span>: <span class="yaml-str">"true"</span>
+<span class="ln">27</span>          <span class="yaml-key">model</span>: <span class="yaml-val">tfidf</span>
+<span class="ln">28</span>          <span class="yaml-key">report</span>: <span class="yaml-val">semshift-report.md</span>
 </div>
       </div>
 
@@ -2638,7 +2646,7 @@
         <span class="divider"></span>
       </div>
       <h2 class="title-grad">Five steps, all local-first.</h2>
-      <p>SemShift runs on your machine or your CI runner. No documents leave your environment unless you explicitly configure it.</p>
+      <p>SemShift runs on your machine or your CI runner. No documents leave your environment unless you explicitly configure external services. Optional embedding models may download weights on first use.</p>
     </div>
 
     <div class="pipeline">
@@ -2655,7 +2663,7 @@
       <div class="step reveal">
         <div class="step-num">03</div>
         <h4>Compare</h4>
-        <p>Use TF-IDF or embeddings to score semantic distance.</p>
+        <p>Use lexical TF-IDF or optional embeddings to estimate drift signals.</p>
       </div>
       <div class="step reveal">
         <div class="step-num">04</div>
@@ -2747,8 +2755,11 @@
           </div>
           <div class="code-body" id="cliCode"><span style="color:var(--cyan);">$</span> pip install semshift
 <span style="color:var(--cyan);">$</span> semshift compare old.md new.md <span class="yaml-key">--mode</span> <span class="yaml-val">policy</span>
-<span style="color:var(--cyan);">$</span> semshift compare prompt_v1.txt prompt_v2.txt <span class="yaml-key">--mode</span> <span class="yaml-val">prompt</span> <span class="yaml-key">--format</span> <span class="yaml-val">json</span>
-<span style="color:var(--cyan);">$</span> semshift compare README.md README.new.md <span class="yaml-key">--mode</span> <span class="yaml-val">readme</span> <span class="yaml-key">--fail-threshold</span> <span class="yaml-val">high</span>
+<span style="color:var(--cyan);">$</span> semshift compare prompt_v1.txt prompt_v2.txt <span class="yaml-key">--mode</span> <span class="yaml-val">prompt</span> <span class="yaml-key">--json</span>
+<span style="color:var(--cyan);">$</span> semshift compare README.md README.new.md <span class="yaml-key">--mode</span> <span class="yaml-val">readme</span> <span class="yaml-key">--fail-on</span> <span class="yaml-val">high</span>
+
+<span style="color:var(--text-3);">Optional semantic embeddings</span>
+<span style="color:var(--cyan);">$</span> pip install <span class="yaml-str">"semshift[models]"</span>
 </div>
         </div>
       </div>
@@ -2771,7 +2782,7 @@ result = <span class="py-fn">compare_files</span>(
     mode=<span class="py-str">"policy"</span>,
 )
 
-<span class="py-kw">if</span> result.risk == <span class="py-str">"high"</span>:
+<span class="py-kw">if</span> result.drift_label in {<span class="py-str">"high"</span>, <span class="py-str">"critical"</span>}:
     <span class="py-fn">print</span>(result.summary)
     <span class="py-fn">print</span>(result.to_markdown())
     <span class="py-kw">raise</span> <span class="py-fn">SystemExit</span>(<span class="py-str">1</span>)
@@ -2790,11 +2801,14 @@ result = <span class="py-fn">compare_files</span>(
             </button>
           </div>
           <div class="code-body" id="ghaShort">- <span class="yaml-key">uses</span>: <span class="yaml-val">actions/checkout@v4</span>
-- <span class="yaml-key">uses</span>: <span class="yaml-val">VeerajSai/SemShift@v1</span>
+  <span class="yaml-key">with</span>:
+    <span class="yaml-key">fetch-depth</span>: <span class="yaml-val">0</span>
+
+- <span class="yaml-key">uses</span>: <span class="yaml-val">VeerajSai/SemShift@v0.2.0</span>
   <span class="yaml-key">with</span>:
     <span class="yaml-key">mode</span>: <span class="yaml-val">policy</span>
-    <span class="yaml-key">fail-threshold</span>: <span class="yaml-val">high</span>
-    <span class="yaml-key">post-comment</span>: <span class="yaml-val">true</span>
+    <span class="yaml-key">fail_on</span>: <span class="yaml-val">high</span>
+    <span class="yaml-key">pr_comment</span>: <span class="yaml-str">"true"</span>
 </div>
         </div>
       </div>
@@ -2825,12 +2839,12 @@ result = <span class="py-fn">compare_files</span>(
       <div class="trust-card reveal">
         <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <h4>Local-first</h4>
-        <p>TF-IDF and on-device SentenceTransformer embeddings. Your documents stay on your machine.</p>
+        <p>TF-IDF runs locally. Optional SentenceTransformer embeddings run locally after model weights are downloaded.</p>
       </div>
       <div class="trust-card reveal">
         <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
         <h4>CI-friendly</h4>
-        <p>Deterministic exit codes, JSON and Markdown reports, configurable fail thresholds. Built to plug in.</p>
+        <p>Deterministic exit codes, JSON and Markdown reports, configurable fail_on thresholds. Built to plug in.</p>
       </div>
       <div class="trust-card reveal">
         <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
@@ -2864,7 +2878,7 @@ result = <span class="py-fn">compare_files</span>(
       <p class="lead">One pip install. One CLI command. A meaningful guardrail against silent AI rewrites.</p>
 
       <div class="ctas">
-        <a class="btn btn-primary btn-lg" href="https://github.com/VeerajSai/semshift" target="_blank" rel="noopener">
+        <a class="btn btn-primary btn-lg" href="https://github.com/VeerajSai/SemShift" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
           Star on GitHub
           <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6m0 0L6 3m3 3L6 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2904,14 +2918,14 @@ result = <span class="py-fn">compare_files</span>(
           </span>
           SemShift
         </div>
-        <p>Git diff for meaning. An open-source CLI and GitHub Action for catching semantic drift in AI-edited text.</p>
+        <p>Local-first CLI and GitHub Action for flagging likely risky meaning drift in AI-edited and human-edited text.</p>
       </div>
       <div class="footer-col">
         <h5>Project</h5>
         <ul>
           <li><a href="https://github.com/VeerajSai/SemShift" target="_blank" rel="noopener">GitHub <span class="ext">↗</span></a></li>
           <li><a href="https://pypi.org/project/semshift/" target="_blank" rel="noopener">PyPI <span class="ext">↗</span></a></li>
-          <li><a href="#install">Documentation</a></li>
+          <li><a href="https://github.com/VeerajSai/SemShift#readme" target="_blank" rel="noopener">Documentation <span class="ext">↗</span></a></li>
           <li><a href="https://github.com/VeerajSai/SemShift/issues" target="_blank" rel="noopener">Issues <span class="ext">↗</span></a></li>
         </ul>
       </div>
@@ -2928,13 +2942,12 @@ result = <span class="py-fn">compare_files</span>(
         <h5>Legal</h5>
         <ul>
           <li><a href="https://github.com/VeerajSai/SemShift/blob/main/LICENSE" target="_blank" rel="noopener">MIT License <span class="ext">↗</span></a></li>
-          <li><a href="https://github.com/VeerajSai/SemShift" target="_blank" rel="noopener">Code of Conduct <span class="ext">↗</span></a></li>
+          <li><a href="https://github.com/VeerajSai/SemShift/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noopener">Code of Conduct <span class="ext">↗</span></a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 SemShift · Built by Veeraj Sai</span>
-      <span>v1.0 · MIT licensed</span>
+      <span>© 2026 SemShift · Built by Veeraj Sai · v0.2.0 alpha · MIT licensed</span>
     </div>
   </div>
 </footer>
@@ -3155,11 +3168,11 @@ result = <span class="py-fn">compare_files</span>(
     { html: '<span class="term-section">→ loading documents…</span>', pause: 350 },
     { html: '<span class="term-out">  policy_old.md  <span class="label">·</span> 14 chunks  <span class="label">·</span> 1,824 tokens</span>', pause: 120 },
     { html: '<span class="term-out">  policy_new.md  <span class="label">·</span> 14 chunks  <span class="label">·</span> 1,912 tokens</span>', pause: 350 },
-    { html: '<span class="term-section">→ aligning chunks (TF-IDF + embeddings)…</span>', pause: 500 },
+    { html: '<span class="term-section">→ aligning chunks (lexical TF-IDF)…</span>', pause: 500 },
     { html: '<span class="term-out">  14/14 aligned  <span class="label">·</span> avg similarity 0.71</span>', pause: 400 },
     { html: '<span class="term-section">→ scoring drift (mode: policy)…</span>', pause: 500 },
     { html: '<br><span class="term-out"><span class="key">Semantic Drift Score:</span> <span class="high">0.82</span></span>', pause: 200 },
-    { html: '<span class="term-out"><span class="key">Risk Level:</span> <span class="high">HIGH</span></span>', pause: 300 },
+    { html: '<span class="term-out"><span class="key">Drift Label:</span> <span class="high">HIGH</span></span>', pause: 300 },
     { html: '<br><span class="term-out"><span class="key">Detected Changes:</span></span>', pause: 200 },
     { html: '<span class="term-out">  <span class="term-bullet">•</span> Privacy promise weakened <span class="label">(chunk 3)</span></span>', pause: 200 },
     { html: '<span class="term-out">  <span class="term-bullet">•</span> Third-party sharing introduced <span class="label">(chunk 3)</span></span>', pause: 200 },

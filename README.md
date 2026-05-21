@@ -150,7 +150,7 @@ TF-IDF is a lexical backend, not a true semantic model. Optional embedding model
 
 SemShift includes a starter self-evaluation benchmark for regression tracking. See [docs/benchmarks.md](docs/benchmarks.md).
 
-Do not treat starter benchmark numbers as external validation. Human-labeled external evaluation is still needed.
+Do not treat starter benchmark numbers as independent validation. Human-labeled outside evaluation is still needed.
 
 ## Compared To
 
