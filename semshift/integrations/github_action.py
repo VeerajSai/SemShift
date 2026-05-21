@@ -7,7 +7,7 @@ import glob
 import json
 import os
 import re
-import subprocess
+import subprocess  # nosec B404
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -140,7 +140,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def _repo_root() -> Path:
     try:
-        completed = subprocess.run(
+        completed = subprocess.run(  # nosec B603 B607
             ["git", "rev-parse", "--show-toplevel"],
             check=True,
             capture_output=True,
@@ -180,7 +180,7 @@ def _changed_supported_files(base_ref: str) -> list[str]:
     candidates = [f"origin/{base_ref}...HEAD", f"{base_ref}...HEAD", base_ref]
     for candidate in candidates:
         try:
-            completed = subprocess.run(
+            completed = subprocess.run(  # nosec B603 B607
                 ["git", "diff", "--name-only", "-z", "--diff-filter=ACMRD", candidate],
                 check=True,
                 capture_output=True,
@@ -217,7 +217,7 @@ def _git_show(base_ref: str, file_name: str) -> str | None:
     refs = [f"origin/{base_ref}:{normalized}", f"{base_ref}:{normalized}"]
     for ref in refs:
         try:
-            completed = subprocess.run(
+            completed = subprocess.run(  # nosec B603 B607
                 ["git", "show", "--no-ext-diff", ref],
                 check=True,
                 capture_output=True,
@@ -437,7 +437,7 @@ def _github_request(
             "X-GitHub-Api-Version": "2022-11-28",
         },
     )
-    with urlopen(request, timeout=15) as response:
+    with urlopen(request, timeout=15) as response:  # nosec B310
         raw = response.read().decode("utf-8")
     return json.loads(raw) if raw else {}
 

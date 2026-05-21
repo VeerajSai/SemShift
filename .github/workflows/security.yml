@@ -17,7 +17,9 @@ jobs:
           python-version: "3.11"
       - name: Install audit tools
         run: python -m pip install pip-audit bandit
-      - name: pip-audit
-        run: pip-audit
+      - name: pip-audit project dependencies
+        run: pip-audit .
+      - name: pip-audit development tools
+        run: pip-audit -r requirements-dev.txt
       - name: bandit
         run: bandit -r semshift -q
