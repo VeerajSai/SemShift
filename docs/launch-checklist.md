@@ -10,5 +10,5 @@ Before a stable release:
 - `twine check dist/*` passes.
 - Starter benchmark results are clearly labeled as self-evaluation.
 - README and landing page do not claim legal, factual, or scientific authority.
-- GitHub Action examples use `fetch-depth: 0`, `fail_on`, and `pr_comment`.
+- GitHub Action examples use Node 24-compatible action versions, `fetch-depth: 0`, `fail_on`, `pr_comment`, `paths`/`exclude_paths`, and artifact links.
 - PyPI Trusted Publisher is configured by the repository owner before tag publishing.

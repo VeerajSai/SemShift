@@ -86,7 +86,7 @@ jobs:
   semshift:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -95,13 +95,16 @@ jobs:
           mode: policy
           fail_on: high
           pr_comment: "true"
+          paths: "docs/**,prompts/**,**/*.md,**/*.txt"
+          exclude_paths: ".github/workflows/**"
           model: tfidf
           report: semshift-report.md
+          artifact_name: semshift-policy-report
 ```
 
-Inputs include `files`, `mode`, `fail_on`, `model`, `report`, `base_ref`, `pr_comment`, `github_token`, `max_file_size`, and `max_chunks`.
+Inputs include `files`, `paths`, `exclude_paths`, `mode`, `fail_on`, `model`, `report`, `artifact_name`, `base_ref`, `pr_comment`, `github_token`, `max_file_size`, and `max_chunks`.
 
-> **Note:** `fail_on` defaults to `high`. The action exits with code 1 when any file reaches high or critical drift.
+> **Note:** `fail_on` defaults to `high`. Use `fail_on: none` for warn-only mode.
 
 ## Python API
 
@@ -186,9 +189,9 @@ Windows path issues: Quote paths with spaces and prefer PowerShell-compatible qu
 
 GitHub Action fork PRs: PR comments can be unavailable for forks with restricted permissions; the report artifact is still written.
 
-No files matched: Pass `files`, use `actions/checkout` with `fetch-depth: 0`, or check supported extensions.
+No files matched: Pass `files` or `paths`, use `actions/checkout@v5` with `fetch-depth: 0`, or check supported extensions. Use `exclude_paths` for generated files or workflow YAML.
 
-Report too long: GitHub comments are truncated and the full report is uploaded as an artifact.
+Report too long: GitHub comments are truncated and link to the workflow run where the configured report artifact is uploaded.
 
 ## Roadmap
 

@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import glob
 import json
 import os
 import re
 import subprocess  # nosec B404
+import sys
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -39,10 +41,21 @@ def main(argv: list[str] | None = None) -> int:
             "When omitted, SemShift compares changed supported files in the PR."
         ),
     )
+    parser.add_argument(
+        "--paths",
+        default="",
+        help="Comma-separated include globs applied to changed or explicit files.",
+    )
+    parser.add_argument(
+        "--exclude-paths",
+        default="",
+        help="Comma-separated exclude globs applied to changed or explicit files.",
+    )
     parser.add_argument("--mode", default="default")
     parser.add_argument("--fail-on", default="")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--report", default="semshift-report.md")
+    parser.add_argument("--artifact-name", default="semshift-report")
     parser.add_argument("--base-ref", default="", help="Base branch/ref to compare against.")
     parser.add_argument(
         "--pr-comment", default="false", help="Post or update a pull request comment."
@@ -65,7 +78,12 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
 
-    files = _resolve_files(args.files, base_ref)
+    files = _resolve_files(
+        args.files,
+        base_ref,
+        paths=args.paths,
+        exclude_paths=args.exclude_paths,
+    )
     if not files:
         CONSOLE.print("No supported files were provided or changed. Nothing to compare.")
         _write_action_summary("# SemShift\n\nNo supported files were compared.\n")
@@ -119,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
             f"{rich_escape(file_name)}: {result.overall_score:.2f} {result.drift_label.upper()}"
         )
         try:
-            if args.fail_on and label_meets(result.drift_label, args.fail_on):
+            if label_meets(result.drift_label, args.fail_on):
                 failed = True
         except ValueError as exc:
             ERROR_CONSOLE.print(f"[red]SemShift error:[/red] {rich_escape(str(exc))}")
@@ -128,14 +146,42 @@ def main(argv: list[str] | None = None) -> int:
     report = _combined_markdown(results, skipped=skipped)
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(report, encoding="utf-8")
-    _write_action_summary(_summary_markdown(results, args.fail_on, report_path, skipped=skipped))
+    workflow_run_url = _workflow_run_url()
+    _write_action_summary(
+        _summary_markdown(
+            results,
+            args.fail_on,
+            report_path,
+            skipped=skipped,
+            artifact_name=args.artifact_name,
+            workflow_run_url=workflow_run_url,
+        )
+    )
     _write_action_outputs(results, report_path)
     if _truthy(args.pr_comment):
         _maybe_post_pr_comment(
-            _pr_comment_body(results, report_path, skipped=skipped), args.github_token
+            _pr_comment_body(
+                results,
+                report_path,
+                skipped=skipped,
+                artifact_name=args.artifact_name,
+                workflow_run_url=workflow_run_url,
+            ),
+            args.github_token,
         )
     CONSOLE.print(f"SemShift report written to {report_path}")
-    return 1 if failed else 0
+    if failed:
+        message = _failure_message(
+            _worst_label(results),
+            args.fail_on,
+            report_path,
+            artifact_name=args.artifact_name,
+            workflow_run_url=workflow_run_url,
+        )
+        _github_error(message)
+        ERROR_CONSOLE.print(f"[red]{rich_escape(message)}[/red]")
+        return 1
+    return 0
 
 
 def _repo_root() -> Path:
@@ -153,12 +199,22 @@ def _repo_root() -> Path:
     return Path(completed.stdout.strip()).resolve()
 
 
-def _resolve_files(raw_files: str, base_ref: str) -> list[str]:
+def _resolve_files(
+    raw_files: str,
+    base_ref: str,
+    *,
+    paths: str = "",
+    exclude_paths: str = "",
+) -> list[str]:
     """Resolve explicit files/globs or changed files into safe repo-relative paths."""
     repo_root = _repo_root()
-    patterns = [item.strip() for item in raw_files.split(",") if item.strip()]
+    patterns = _split_patterns(raw_files)
     if not patterns:
-        return _changed_supported_files(base_ref)
+        return _filter_paths(
+            _changed_supported_files(base_ref),
+            include_patterns=_split_patterns(paths),
+            exclude_patterns=_split_patterns(exclude_paths),
+        )
 
     files: set[str] = set()
     for pattern in patterns:
@@ -169,7 +225,46 @@ def _resolve_files(raw_files: str, base_ref: str) -> list[str]:
                 if path.exists() and not path.is_file():
                     continue
                 files.add(normalized)
-    return sorted(files)
+    return _filter_paths(
+        sorted(files),
+        include_patterns=_split_patterns(paths),
+        exclude_patterns=_split_patterns(exclude_paths),
+    )
+
+
+def _split_patterns(raw_patterns: str) -> list[str]:
+    return [item.strip().replace("\\", "/") for item in raw_patterns.split(",") if item.strip()]
+
+
+def _filter_paths(
+    files: list[str],
+    *,
+    include_patterns: list[str],
+    exclude_patterns: list[str],
+) -> list[str]:
+    filtered = []
+    for file_name in files:
+        normalized = file_name.replace("\\", "/")
+        if include_patterns and not _matches_any_pattern(normalized, include_patterns):
+            continue
+        if exclude_patterns and _matches_any_pattern(normalized, exclude_patterns):
+            continue
+        filtered.append(normalized)
+    return sorted(filtered)
+
+
+def _matches_any_pattern(file_name: str, patterns: list[str]) -> bool:
+    for pattern in patterns:
+        normalized_pattern = pattern.removeprefix("./")
+        if normalized_pattern.endswith("/"):
+            normalized_pattern += "**"
+        if fnmatch.fnmatchcase(file_name, normalized_pattern):
+            return True
+        if normalized_pattern.startswith("**/") and fnmatch.fnmatchcase(
+            file_name, normalized_pattern[3:]
+        ):
+            return True
+    return False
 
 
 def _changed_supported_files(base_ref: str) -> list[str]:
@@ -283,6 +378,8 @@ def _summary_markdown(
     report_path: Path,
     *,
     skipped: list[str] | None = None,
+    artifact_name: str = "semshift-report",
+    workflow_run_url: str | None = None,
 ) -> str:
     lines = ["# SemShift", ""]
     if not results:
@@ -291,10 +388,19 @@ def _summary_markdown(
         worst = _worst_label(results)
         lines.append(f"Compared **{len(results)}** file(s). Worst drift: **{worst.upper()}**.")
         if fail_on:
-            lines.append(f"Failure threshold: `{fail_on}`.")
-        lines.append(f"Full report artifact: {markdown_code(report_path.as_posix())}.")
+            if label_meets(worst, fail_on):
+                lines.append(f"Result: failing because `{worst}` meets `fail_on: {fail_on}`.")
+            else:
+                lines.append(f"Result: warn-only/pass for `fail_on: {fail_on}`.")
         lines.append("")
         lines.extend(_summary_table(results))
+    lines.append(
+        "Full report: "
+        f"{markdown_code(report_path.as_posix())} in artifact "
+        f"{markdown_code(artifact_name)}."
+    )
+    if workflow_run_url:
+        lines.append(f"Workflow run: {workflow_run_url}")
     if skipped:
         lines.extend(["", "Skipped files:", ""])
         lines.extend(f"- {escape_markdown_text(item)}" for item in skipped[:10])
@@ -341,6 +447,8 @@ def _pr_comment_body(
     report_path: str | Path,
     *,
     skipped: list[str] | None = None,
+    artifact_name: str = "semshift-report",
+    workflow_run_url: str | None = None,
 ) -> str:
     body = ["<!-- semshift-report -->", "# SemShift semantic review", ""]
     if not results:
@@ -348,12 +456,15 @@ def _pr_comment_body(
     else:
         worst = _worst_label(results)
         body.append(f"Compared **{len(results)}** file(s). Worst drift: **{worst.upper()}**.")
-        body.append(
-            "Full Markdown report is available in the workflow artifact: "
-            f"{markdown_code(Path(report_path).as_posix())}."
-        )
         body.append("")
         body.extend(_summary_table(results))
+    body.append(
+        "Full Markdown report: "
+        f"{markdown_code(Path(report_path).as_posix())} in artifact "
+        f"{markdown_code(artifact_name)}."
+    )
+    if workflow_run_url:
+        body.append(f"Workflow run artifacts: {workflow_run_url}")
     if skipped:
         body.extend(["", "Skipped files:", ""])
         body.extend(f"- {escape_markdown_text(item)}" for item in skipped[:10])
@@ -403,6 +514,37 @@ def _maybe_post_pr_comment(body: str, github_token: str) -> None:
             CONSOLE.print("Created SemShift PR comment.")
     except (OSError, KeyError, ValueError, HTTPError, URLError) as exc:
         ERROR_CONSOLE.print(f"Skipping PR comment: {rich_escape(str(exc))}")
+
+
+def _workflow_run_url() -> str | None:
+    server_url = os.environ.get("GITHUB_SERVER_URL", "https://github.com").rstrip("/")
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    run_id = os.environ.get("GITHUB_RUN_ID", "")
+    if not repo or not run_id:
+        return None
+    return f"{server_url}/{repo}/actions/runs/{run_id}#artifacts"
+
+
+def _failure_message(
+    worst_label: str,
+    fail_on: str,
+    report_path: Path,
+    *,
+    artifact_name: str,
+    workflow_run_url: str | None,
+) -> str:
+    message = (
+        f"SemShift detected {worst_label.upper()} drift meeting fail_on '{fail_on}'. "
+        f"Review {report_path.as_posix()} in artifact '{artifact_name}'."
+    )
+    if workflow_run_url:
+        message += f" Artifacts: {workflow_run_url}"
+    return message
+
+
+def _github_error(message: str) -> None:
+    escaped = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    sys.stderr.write(f"::error title=SemShift drift detected::{escaped}\n")
 
 
 def _find_existing_comment(comments_url: str, token: str) -> str | None:

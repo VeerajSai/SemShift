@@ -80,6 +80,10 @@ class TestLabelMeets:
         assert label_meets("HIGH", "high") is True
         assert label_meets("Low", "MEDIUM") is False
 
+    def test_none_threshold_never_fails(self):
+        assert label_meets("critical", "none") is False
+        assert label_meets("high", "NONE") is False
+
 
 class TestWeightedSum:
     def test_equal_weights(self):

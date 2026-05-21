@@ -8,6 +8,7 @@ LABEL_ORDER = {
     "high": 2,
     "critical": 3,
 }
+NO_FAIL_THRESHOLDS = {"", "none"}
 
 
 def clamp(value: float, minimum: float = 0.0, maximum: float = 1.0) -> float:
@@ -29,10 +30,13 @@ def drift_label(score: float) -> str:
 
 def label_meets(label: str, threshold: str) -> bool:
     """Return whether a drift label meets or exceeds a threshold."""
+    normalized_threshold = threshold.lower().strip()
+    if normalized_threshold in NO_FAIL_THRESHOLDS:
+        return False
     try:
-        return LABEL_ORDER[label.lower()] >= LABEL_ORDER[threshold.lower()]
+        return LABEL_ORDER[label.lower().strip()] >= LABEL_ORDER[normalized_threshold]
     except KeyError:
-        valid = ", ".join(LABEL_ORDER)
+        valid = ", ".join([*LABEL_ORDER, "none"])
         raise ValueError(f"Unknown drift threshold. Expected one of: {valid}") from None
 
 

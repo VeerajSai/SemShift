@@ -1,9 +1,12 @@
+from pathlib import Path
+
 from semshift import compare_text
 from semshift.integrations.github_action import (
     _combined_markdown,
     _normalize_repo_path,
     _pr_comment_body,
     _resolve_files,
+    _summary_markdown,
     _truncate_comment_body,
 )
 
@@ -15,6 +18,25 @@ def test_action_resolves_globbed_supported_files(tmp_path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
 
     assert _resolve_files("docs/*", "main") == ["docs/privacy.md"]
+
+
+def test_action_filters_paths_and_exclude_paths(tmp_path, monkeypatch) -> None:
+    (tmp_path / "docs").mkdir()
+    (tmp_path / ".github" / "workflows").mkdir(parents=True)
+    (tmp_path / "docs" / "privacy.md").write_text("privacy", encoding="utf-8")
+    (tmp_path / ".github" / "workflows" / "semshift.yml").write_text(
+        "name: SemShift", encoding="utf-8"
+    )
+    monkeypatch.chdir(tmp_path)
+
+    files = _resolve_files(
+        "docs/privacy.md,.github/workflows/semshift.yml",
+        "main",
+        paths="docs/**,.github/workflows/**",
+        exclude_paths=".github/workflows/**",
+    )
+
+    assert files == ["docs/privacy.md"]
 
 
 def test_action_combined_markdown_has_summary_table() -> None:
@@ -47,6 +69,43 @@ def test_action_pr_comment_body_has_marker_and_summary() -> None:
     assert "<!-- semshift-report -->" in body
     assert "SemShift semantic review" in body
     assert "`docs/privacy.md`" in body
+
+
+def test_action_pr_comment_links_run_artifact() -> None:
+    result = compare_text(
+        old="We do not share personal data.",
+        new="We may share personal data with selected partners.",
+        mode="policy",
+        model="tfidf",
+        new_label="docs/privacy.md",
+    )
+
+    body = _pr_comment_body(
+        [result],
+        "reports/semshift.md",
+        artifact_name="semshift-policy-report",
+        workflow_run_url="https://github.com/org/repo/actions/runs/123#artifacts",
+    )
+
+    assert "`reports/semshift.md`" in body
+    assert "`semshift-policy-report`" in body
+    assert "https://github.com/org/repo/actions/runs/123#artifacts" in body
+
+
+def test_action_summary_distinguishes_fail_and_warn_only() -> None:
+    result = compare_text(
+        old="We do not sell user data.",
+        new="We may monetize user data with partners.",
+        mode="policy",
+        model="tfidf",
+        new_label="policy.md",
+    )
+
+    failing = _summary_markdown([result], "high", Path("semshift-report.md"))
+    warn_only = _summary_markdown([result], "none", Path("semshift-report.md"))
+
+    assert "Result: failing" in failing
+    assert "Result: warn-only/pass" in warn_only
 
 
 def test_action_rejects_parent_traversal(tmp_path, monkeypatch) -> None:

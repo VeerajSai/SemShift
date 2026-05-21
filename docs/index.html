@@ -2578,7 +2578,7 @@
 <span class="ln">16</span>  <span class="yaml-key">semshift</span>:
 <span class="ln">17</span>    <span class="yaml-key">runs-on</span>: <span class="yaml-val">ubuntu-latest</span>
 <span class="ln">18</span>    <span class="yaml-key">steps</span>:
-<span class="ln">19</span>      - <span class="yaml-key">uses</span>: <span class="yaml-val">actions/checkout@v4</span>
+<span class="ln">19</span>      - <span class="yaml-key">uses</span>: <span class="yaml-val">actions/checkout@v5</span>
 <span class="ln">20</span>        <span class="yaml-key">with</span>:
 <span class="ln">21</span>          <span class="yaml-key">fetch-depth</span>: <span class="yaml-val">0</span>
 <span class="ln">22</span>      - <span class="yaml-key">uses</span>: <span class="yaml-val">VeerajSai/SemShift@v0.2.0</span>
@@ -2586,8 +2586,11 @@
 <span class="ln">24</span>          <span class="yaml-key">mode</span>: <span class="yaml-val">prompt</span>
 <span class="ln">25</span>          <span class="yaml-key">fail_on</span>: <span class="yaml-val">high</span>
 <span class="ln">26</span>          <span class="yaml-key">pr_comment</span>: <span class="yaml-str">"true"</span>
-<span class="ln">27</span>          <span class="yaml-key">model</span>: <span class="yaml-val">tfidf</span>
-<span class="ln">28</span>          <span class="yaml-key">report</span>: <span class="yaml-val">semshift-report.md</span>
+<span class="ln">27</span>          <span class="yaml-key">paths</span>: <span class="yaml-str">"docs/**,prompts/**,**/*.md,**/*.txt"</span>
+<span class="ln">28</span>          <span class="yaml-key">exclude_paths</span>: <span class="yaml-str">".github/workflows/**"</span>
+<span class="ln">29</span>          <span class="yaml-key">model</span>: <span class="yaml-val">tfidf</span>
+<span class="ln">30</span>          <span class="yaml-key">report</span>: <span class="yaml-val">semshift-report.md</span>
+<span class="ln">31</span>          <span class="yaml-key">artifact_name</span>: <span class="yaml-val">semshift-policy-report</span>
 </div>
       </div>
 
@@ -2800,7 +2803,7 @@ result = <span class="py-fn">compare_files</span>(
               copy
             </button>
           </div>
-          <div class="code-body" id="ghaShort">- <span class="yaml-key">uses</span>: <span class="yaml-val">actions/checkout@v4</span>
+          <div class="code-body" id="ghaShort">- <span class="yaml-key">uses</span>: <span class="yaml-val">actions/checkout@v5</span>
   <span class="yaml-key">with</span>:
     <span class="yaml-key">fetch-depth</span>: <span class="yaml-val">0</span>
 
@@ -2809,6 +2812,8 @@ result = <span class="py-fn">compare_files</span>(
     <span class="yaml-key">mode</span>: <span class="yaml-val">policy</span>
     <span class="yaml-key">fail_on</span>: <span class="yaml-val">high</span>
     <span class="yaml-key">pr_comment</span>: <span class="yaml-str">"true"</span>
+    <span class="yaml-key">exclude_paths</span>: <span class="yaml-str">".github/workflows/**"</span>
+    <span class="yaml-key">artifact_name</span>: <span class="yaml-val">semshift-policy-report</span>
 </div>
         </div>
       </div>
@@ -2844,7 +2849,7 @@ result = <span class="py-fn">compare_files</span>(
       <div class="trust-card reveal">
         <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
         <h4>CI-friendly</h4>
-        <p>Deterministic exit codes, JSON and Markdown reports, configurable fail_on thresholds. Built to plug in.</p>
+        <p>Deterministic exit codes, warn-only mode, JSON and Markdown reports, configurable fail_on thresholds. Built to plug in.</p>
       </div>
       <div class="trust-card reveal">
         <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
@@ -3178,7 +3183,7 @@ result = <span class="py-fn">compare_files</span>(
     { html: '<span class="term-out">  <span class="term-bullet">•</span> Third-party sharing introduced <span class="label">(chunk 3)</span></span>', pause: 200 },
     { html: '<span class="term-out">  <span class="term-bullet">•</span> User consent requirement softened <span class="label">(chunk 7)</span></span>', pause: 300 },
     { html: '<br><span class="term-out"><span class="key">Recommendation:</span> <span class="med">Block merge until reviewed.</span></span>', pause: 200 },
-    { html: '<span class="term-out"><span class="label">→ wrote</span> semshift-report.md <span class="label">(2.1 KB)</span></span>', pause: 0 },
+    { html: '<span class="term-out"><span class="label">→ wrote</span> semshift-report.md <span class="label">artifact linked in PR</span></span>', pause: 0 },
   ];
   let termStarted = false;
   function startTerminal() {

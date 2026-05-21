@@ -17,7 +17,7 @@ The included benchmark is a starter self-evaluation set for regression tracking.
 
 - Canonical severity field is `drift_label`.
 - Python examples should use `result.drift_label`, `result.summary`, `result.risk_flags`, and `result.to_markdown()`.
-- GitHub Action inputs use `fail_on` and `pr_comment`.
+- GitHub Action inputs use `fail_on`, `pr_comment`, `paths`, `exclude_paths`, and `artifact_name`.
 - `compare-git`, `semshift init`, config loading, NLI/deep mode, and mode registry splitting remain future work.
 
 ## 4. Benchmark updates
@@ -51,7 +51,7 @@ The included benchmark is a starter self-evaluation set for regression tracking.
 ## 8. Upgrade notes
 
 - Use Python 3.10+.
-- Prefer `fail_on` over any older threshold input names.
+- Prefer `fail_on` over any older threshold input names; use `fail_on: none` for warn-only checks.
 - Prefer `pr_comment` for pull request comment behavior.
 - Update Python callers to use `result.drift_label` for severity.
 - Package metadata remains `0.2.0`; do not treat this alpha as a stable v1 release.
@@ -68,7 +68,7 @@ jobs:
   semshift:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -77,8 +77,11 @@ jobs:
           mode: policy
           fail_on: high
           pr_comment: "true"
+          paths: "docs/**,prompts/**,**/*.md,**/*.txt"
+          exclude_paths: ".github/workflows/**"
           model: tfidf
           report: semshift-report.md
+          artifact_name: semshift-policy-report
 ```
 
 ## 10. PyPI publishing checklist

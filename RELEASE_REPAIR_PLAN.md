@@ -65,7 +65,7 @@ jobs:
   semshift:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -74,8 +74,11 @@ jobs:
           mode: policy
           fail_on: high
           pr_comment: "true"
+          paths: "docs/**,prompts/**,**/*.md,**/*.txt"
+          exclude_paths: ".github/workflows/**"
           model: tfidf
           report: semshift-report.md
+          artifact_name: semshift-policy-report
 ```
 
 Test text:

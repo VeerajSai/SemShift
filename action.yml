@@ -11,12 +11,20 @@ inputs:
     description: "Comma-separated files or glob patterns. Leave empty to compare changed supported files in the PR."
     required: false
     default: ""
+  paths:
+    description: "Comma-separated include globs applied to changed or explicit files. Empty means all supported files."
+    required: false
+    default: ""
+  exclude_paths:
+    description: "Comma-separated exclude globs applied to changed or explicit files."
+    required: false
+    default: ".github/workflows/**"
   mode:
     description: "Review mode: default, readme, policy, research, resume, or prompt."
     required: false
     default: "default"
   fail_on:
-    description: "Fail the action when drift reaches this label: low, medium, high, critical. Default: high."
+    description: "Fail the action when drift reaches this label: low, medium, high, critical, or none for warn-only. Default: high."
     required: false
     default: "high"
   model:
@@ -27,6 +35,10 @@ inputs:
     description: "Markdown report artifact path."
     required: false
     default: "semshift-report.md"
+  artifact_name:
+    description: "Name for the uploaded Markdown report artifact."
+    required: false
+    default: "semshift-report"
   base_ref:
     description: "Base ref to compare against. Defaults to the pull request base branch."
     required: false
@@ -60,7 +72,7 @@ runs:
   using: "composite"
   steps:
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: "3.11"
 
@@ -83,10 +95,13 @@ runs:
       env:
         SEMSHIFT_BASE_REF: ${{ inputs.base_ref }}
         SEMSHIFT_FILES: ${{ inputs.files }}
+        SEMSHIFT_PATHS: ${{ inputs.paths }}
+        SEMSHIFT_EXCLUDE_PATHS: ${{ inputs.exclude_paths }}
         SEMSHIFT_MODE: ${{ inputs.mode }}
         SEMSHIFT_FAIL_ON: ${{ inputs.fail_on }}
         SEMSHIFT_MODEL: ${{ inputs.model }}
         SEMSHIFT_REPORT: ${{ inputs.report }}
+        SEMSHIFT_ARTIFACT_NAME: ${{ inputs.artifact_name }}
         SEMSHIFT_PR_COMMENT: ${{ inputs.pr_comment }}
         SEMSHIFT_MAX_FILE_SIZE: ${{ inputs.max_file_size }}
         SEMSHIFT_MAX_CHUNKS: ${{ inputs.max_chunks }}
@@ -94,10 +109,13 @@ runs:
       run: |
         python -m semshift.integrations.github_action \
           --files "$SEMSHIFT_FILES" \
+          --paths "$SEMSHIFT_PATHS" \
+          --exclude-paths "$SEMSHIFT_EXCLUDE_PATHS" \
           --mode "$SEMSHIFT_MODE" \
           --fail-on "$SEMSHIFT_FAIL_ON" \
           --model "$SEMSHIFT_MODEL" \
           --report "$SEMSHIFT_REPORT" \
+          --artifact-name "$SEMSHIFT_ARTIFACT_NAME" \
           --base-ref "$SEMSHIFT_BASE_REF" \
           --pr-comment "$SEMSHIFT_PR_COMMENT" \
           --github-token "$GITHUB_TOKEN" \
@@ -105,8 +123,8 @@ runs:
           --max-chunks "$SEMSHIFT_MAX_CHUNKS"
 
     - name: Upload SemShift report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
-        name: semshift-report
+        name: "${{ inputs.artifact_name }}"
         path: "${{ inputs.report }}"

@@ -29,8 +29,8 @@ SentenceTransformers models may download weights and initialize on first use. Th
 
 ## GitHub Action Finds No Files
 
-Use `actions/checkout@v4` with `fetch-depth: 0`, confirm supported extensions, or pass the `files` input explicitly.
+Use `actions/checkout@v5` with `fetch-depth: 0`, confirm supported extensions, or pass `files`/`paths` explicitly. Use `exclude_paths: ".github/workflows/**"` if workflow YAML changes should not be reviewed.
 
 ## Report Too Long
 
-PR comments are truncated. Open the `semshift-report` artifact for the full Markdown report.
+PR comments are truncated. Open the linked workflow run and download the configured report artifact for the full Markdown report.

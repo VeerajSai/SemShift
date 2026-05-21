@@ -4,6 +4,18 @@ All notable changes to SemShift will be documented in this file.
 
 The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses semantic versioning once public releases begin.
 
+## [Unreleased]
+
+### Added
+
+- GitHub Action `paths`, `exclude_paths`, `artifact_name`, and `fail_on: none` inputs.
+- PR comments and step summaries now include workflow run artifact links when GitHub run metadata is available.
+
+### Changed
+
+- GitHub Action internals and repo workflows now use Node 24-compatible action versions where available.
+- Action failure output now emits a clear SemShift drift-detected message before exiting with code 1.
+
 ## [0.2.0] - 2026-05-21
 
 ### Added
