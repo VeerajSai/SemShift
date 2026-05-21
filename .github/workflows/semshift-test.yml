@@ -23,6 +23,6 @@ jobs:
         with:
           mode: policy
           fail_on: critical
-          pr_comment: "true"
+          pr_comment: "false"
           model: tfidf
           report: semshift-report.md
