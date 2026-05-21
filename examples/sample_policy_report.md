@@ -1,10 +1,10 @@
 # SemShift Report
 
-**Files:** `examples/old_policy.md` -> `examples/new_policy.md`
+**Files:** `examples\old_policy.md` -> `examples\new_policy.md`
 **Mode:** `policy`
-**Embedding backend:** `tfidf`
+**Backend:** `tfidf` (lexical)
 
-**Overall semantic drift:** `0.70` **CRITICAL**
+**Overall drift score:** `0.70` **CRITICAL**
 
 ## Summary
 
@@ -61,10 +61,11 @@
 ## Risk Flags
 
 - **CRITICAL third-party sharing:** Text changed from no sharing to possible sharing with partners or third parties.
-- **HIGH longer retention:** Retention appears longer (30 days -> 180 days).
+- **HIGH longer retention:** Retention appears longer (30 days -&gt; 180 days).
 - **CRITICAL indefinite retention:** New wording allows indefinite or open-ended retention.
 - **HIGH reduced consent:** Consent or opt-out protection appears reduced.
 - **HIGH mandatory arbitration:** New wording adds arbitration or class-action limits.
+- **MEDIUM liability limitation:** New wording limits liability or adds a disclaimer.
 - **HIGH user rights removal:** User access, deletion, opt-out, or appeal language appears removed.
 
 ## Recommended Next Steps

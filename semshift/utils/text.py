@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import re
 
 SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9\"'`(])")
@@ -54,3 +55,16 @@ def quote(text: str, max_chars: int = 220) -> str:
     """Return a typographic quote-like snippet without relying on Unicode."""
     return f'"{truncate(text, max_chars=max_chars)}"'
 
+
+def escape_markdown_text(text: str, *, max_chars: int | None = None) -> str:
+    """Escape untrusted text before placing it into Markdown/HTML renderers."""
+    clean = normalize_whitespace(text)
+    if max_chars is not None:
+        clean = truncate(clean, max_chars=max_chars)
+    return html.escape(clean, quote=False)
+
+
+def markdown_code(text: str, *, max_chars: int = 220) -> str:
+    """Return a safe inline Markdown code span for untrusted text."""
+    clean = escape_markdown_text(text, max_chars=max_chars).replace("`", "'")
+    return f"`{clean}`"

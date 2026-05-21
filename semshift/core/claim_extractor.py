@@ -27,6 +27,7 @@ MODAL_STRENGTH: dict[str, int] = {
     "may": 1,
     "could": 1,
     "can": 2,
+    "would": 2,
     "should": 3,
     "must": 4,
     "shall": 4,
@@ -304,16 +305,27 @@ def compare_claims(old_text: str, new_text: str) -> ClaimDiff:
     )
 
 
+_VERSION_RE = re.compile(r"^\d+\.\d+(\.\d+)?$")
+_RUNTIME_CONTEXT_RE = re.compile(r"\b(python|node|npm|java|ruby|go|version|v\d)\b", re.IGNORECASE)
+
+
+def _is_version_number(raw: str, context: str) -> bool:
+    return bool(_VERSION_RE.match(raw.strip())) and bool(_RUNTIME_CONTEXT_RE.search(context))
+
+
 def _extract_numbers(text: str) -> list[ClaimTerm]:
     terms = []
     for match in NUMBER_RE.finditer(text):
         raw = normalize_whitespace(match.group(0))
+        ctx = _context_window(text, match.start(), match.end())
+        if _is_version_number(raw, ctx):
+            continue
         value = _number_value(raw)
         terms.append(
             ClaimTerm(
                 value=raw,
                 category="number",
-                context=_context_window(text, match.start(), match.end()),
+                context=ctx,
                 numeric_value=value,
             )
         )
@@ -333,11 +345,19 @@ def _extract_regex_terms(text: str, pattern: re.Pattern[str], category: str) -> 
     return _unique_terms(terms)
 
 
+_NEGATION_PREFIX_RE = re.compile(
+    r"\b(not|no|never|do not|don't|cannot|won't|will not)\s*$", re.IGNORECASE
+)
+
+
 def _extract_phrase_terms(text: str, phrases: tuple[str, ...], category: str) -> list[ClaimTerm]:
     terms: list[ClaimTerm] = []
     for phrase in phrases:
         pattern = re.compile(rf"\b{re.escape(phrase)}\b", re.IGNORECASE)
         for match in pattern.finditer(text):
+            prefix = text[max(0, match.start() - 40) : match.start()]
+            if _NEGATION_PREFIX_RE.search(prefix):
+                continue
             terms.append(
                 ClaimTerm(
                     value=normalize_whitespace(match.group(0)),
@@ -464,7 +484,7 @@ def _compare_numbers(
             if overlap > best_score:
                 best_score = overlap
                 best_index = index
-        if best_index >= 0 and best_score >= 0.18:
+        if best_index >= 0 and best_score >= 0.25:
             new_term = new_numbers[best_index]
             used_new.add(best_index)
             changes.append(

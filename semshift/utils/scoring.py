@@ -18,9 +18,9 @@ def clamp(value: float, minimum: float = 0.0, maximum: float = 1.0) -> float:
 def drift_label(score: float) -> str:
     """Map a 0..1 drift score to SemShift labels."""
     score = clamp(score)
-    if score < 0.20:
+    if score < 0.25:
         return "low"
-    if score < 0.45:
+    if score < 0.515:
         return "medium"
     if score < 0.70:
         return "high"
@@ -42,4 +42,3 @@ def weighted_sum(parts: list[tuple[float, float]]) -> float:
     if total_weight <= 0:
         return 0.0
     return clamp(sum(score * weight for score, weight in parts) / total_weight)
-

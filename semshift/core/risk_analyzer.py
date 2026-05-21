@@ -8,6 +8,18 @@ from dataclasses import dataclass
 from semshift.core.claim_extractor import ClaimDiff
 from semshift.utils.text import normalize_whitespace, token_set
 
+_NEGATED_SALE_RE = re.compile(
+    r"\b(?:do not|don't|will not|never|not)\s+(?:sell|monetize)\b", re.IGNORECASE
+)
+_HIDDEN_INSTR_RE = re.compile(
+    r"\b(hidden instruction|ignore previous|system prompt|override (?:developer|previous|prior))\b",
+    re.IGNORECASE,
+)
+_SECRECY_RE = re.compile(
+    r"\b(do not reveal|don't reveal|must not reveal|keep secret)\b", re.IGNORECASE
+)
+_DISCLOSE_RE = re.compile(r"\b(reveal|include|share|expose|disclose|provide)\b", re.IGNORECASE)
+
 
 @dataclass(frozen=True)
 class RiskFlag:
@@ -74,7 +86,10 @@ def _policy_risks(old_text: str, new_text: str) -> list[RiskFlag]:
     new = new_text.lower()
 
     if _has(old, r"\b(do not|don't|will not|never)\s+share\b") and (
-        _has(new, r"\b(may|can|will)\s+share\b.*\b(partners?|third[- ]part(?:y|ies)|affiliates?|vendors?)\b")
+        _has(
+            new,
+            r"\b(may|can|will)\s+share\b.*\b(partners?|third[- ]part(?:y|ies)|affiliates?|vendors?)\b",
+        )
         or _has(new, r"\bthird[- ]part(?:y|ies)|selected partners?|affiliates?\b")
     ):
         flags.append(
@@ -130,8 +145,15 @@ def _policy_risks(old_text: str, new_text: str) -> list[RiskFlag]:
             )
         )
 
-    if _has(new, r"\b(sell|sale of|monetize)\b[^.\n]{0,80}\b(data|personal information|profile)\b") and not _has(
-        old, r"\b(sell|sale of|monetize)\b[^.\n]{0,80}\b(data|personal information|profile)\b"
+    _sale_pattern = (
+        r"\b(sell|sale of|monetize)\b[^.\n]{0,80}\b(data|personal information|profile)\b"
+    )
+    old_negates_sale = bool(_NEGATED_SALE_RE.search(old_text))
+    new_negates_sale = bool(_NEGATED_SALE_RE.search(new_text))
+    if (
+        _has(new, _sale_pattern)
+        and not new_negates_sale
+        and (old_negates_sale or not _has(old, _sale_pattern))
     ):
         flags.append(
             RiskFlag(
@@ -156,7 +178,9 @@ def _policy_risks(old_text: str, new_text: str) -> list[RiskFlag]:
             )
         )
 
-    if _has(new, r"\b(track|tracking|monitor|location data|cookies?|analytics identifiers?)\b") and not _has(
+    if _has(
+        new, r"\b(track|tracking|monitor|location data|cookies?|analytics identifiers?)\b"
+    ) and not _has(
         old, r"\b(track|tracking|monitor|location data|cookies?|analytics identifiers?)\b"
     ):
         flags.append(
@@ -182,7 +206,9 @@ def _policy_risks(old_text: str, new_text: str) -> list[RiskFlag]:
             )
         )
 
-    if _has(new, r"\b(limit(?:ed)? liability|not liable|no liability|disclaim(?:s|er|ed)?)\b") and not _has(
+    if _has(
+        new, r"\b(limit(?:ed)? liability|not liable|no liability|disclaim(?:s|er|ed)?)\b"
+    ) and not _has(
         old, r"\b(limit(?:ed)? liability|not liable|no liability|disclaim(?:s|er|ed)?)\b"
     ):
         flags.append(
@@ -210,16 +236,14 @@ def _policy_risks(old_text: str, new_text: str) -> list[RiskFlag]:
     return flags
 
 
-def _research_risks(
-    old_text: str, new_text: str, claim_diff: ClaimDiff | None
-) -> list[RiskFlag]:
+def _research_risks(old_text: str, new_text: str, claim_diff: ClaimDiff | None) -> list[RiskFlag]:
     flags: list[RiskFlag] = []
     old = old_text.lower()
     new = new_text.lower()
 
-    if _has(old, r"\b(limitation|limited|may fail|might fail|not evaluate|future work)\b") and not _has(
-        new, r"\b(limitation|limited|may fail|might fail|not evaluate|future work)\b"
-    ):
+    if _has(
+        old, r"\b(limitations?|limited|may fail|might fail|not evaluate|future work)\b"
+    ) and not _has(new, r"\b(limitations?|limited|may fail|might fail|not evaluate|future work)\b"):
         flags.append(
             RiskFlag(
                 mode="research",
@@ -230,7 +254,9 @@ def _research_risks(
             )
         )
 
-    if _has(new, r"\b(proves?|demonstrates conclusively|state-of-the-art|sota|guaranteed)\b") and not _has(
+    if _has(
+        new, r"\b(proves?|demonstrates conclusively|state-of-the-art|sota|guaranteed)\b"
+    ) and not _has(
         old, r"\b(proves?|demonstrates conclusively|state-of-the-art|sota|guaranteed)\b"
     ):
         flags.append(
@@ -261,7 +287,9 @@ def _research_risks(
             old_value = float(item.get("old_value") or 0)
             new_value = float(item.get("new_value") or 0)
             context = str(item.get("context") or "").lower()
-            if new_value > old_value and _has(context, r"\b(accuracy|f1|precision|recall|score|auc)\b"):
+            if new_value > old_value and _has(
+                context, r"\b(accuracy|f1|precision|recall|score|auc)\b"
+            ):
                 flags.append(
                     RiskFlag(
                         mode="research",
@@ -324,9 +352,9 @@ def _readme_risks(old_text: str, new_text: str) -> list[RiskFlag]:
             )
         )
 
-    if _has(old, r"\b(limitation|limited|does not support|not supported|experimental)\b") and not _has(
-        new, r"\b(limitation|limited|does not support|not supported|experimental)\b"
-    ):
+    if _has(
+        old, r"\b(limitation|limited|does not support|not supported|experimental)\b"
+    ) and not _has(new, r"\b(limitation|limited|does not support|not supported|experimental)\b"):
         flags.append(
             RiskFlag(
                 mode="readme",
@@ -347,8 +375,12 @@ def _readme_risks(old_text: str, new_text: str) -> list[RiskFlag]:
             )
         )
 
-    if _has(new, r"\b(guaranteed|always works|never fails|production ready for all)\b") and not _has(
-        old, r"\b(guaranteed|always works|never fails|production ready for all)\b"
+    if _has(
+        new,
+        r"\b(guaranteed|always works|never fails|production ready for all|proves?\b[^.\n]{0,40}\b\w+-grade)\b",
+    ) and not _has(
+        old,
+        r"\b(guaranteed|always works|never fails|production ready for all|proves?\b[^.\n]{0,40}\b\w+-grade)\b",
     ):
         flags.append(
             RiskFlag(
@@ -362,9 +394,7 @@ def _readme_risks(old_text: str, new_text: str) -> list[RiskFlag]:
     return flags
 
 
-def _resume_risks(
-    old_text: str, new_text: str, claim_diff: ClaimDiff | None
-) -> list[RiskFlag]:
+def _resume_risks(old_text: str, new_text: str, claim_diff: ClaimDiff | None) -> list[RiskFlag]:
     flags: list[RiskFlag] = []
     if claim_diff and claim_diff.modified_numbers:
         flags.append(
@@ -400,13 +430,30 @@ def _resume_risks(
             )
         )
 
-    if _has(new_text, r"\b(led|owned|drove|increased|reduced|scaled)\b") and claim_diff and claim_diff.modified_numbers:
+    if (
+        _has(new_text, r"\b(led|owned|drove|increased|reduced|scaled)\b")
+        and claim_diff
+        and claim_diff.modified_numbers
+    ):
         flags.append(
             RiskFlag(
                 mode="resume",
                 category="inflated impact",
                 severity="medium",
                 why="Impact language and numbers changed together.",
+            )
+        )
+
+    old_large = set(re.findall(r"\b\d{4,}\b", old_text))
+    new_large = set(re.findall(r"\b\d{4,}\b", new_text))
+    if new_large - old_large and not old_large:
+        flags.append(
+            RiskFlag(
+                mode="resume",
+                category="added impact metric",
+                severity="high",
+                why="Large quantitative claims added with no prior numbers.",
+                new_text=_snippet(new_text, next(iter(new_large - old_large))),
             )
         )
     return flags
@@ -417,21 +464,38 @@ def _prompt_risks(old_text: str, new_text: str) -> list[RiskFlag]:
     old = old_text.lower()
     new = new_text.lower()
 
-    if _has(new, r"\b(hidden instruction|secret|do not reveal|ignore previous|system prompt)\b") and not _has(
-        old, r"\b(hidden instruction|secret|do not reveal|ignore previous|system prompt)\b"
-    ):
+    if bool(_HIDDEN_INSTR_RE.search(new_text)) and not bool(_HIDDEN_INSTR_RE.search(old_text)):
         flags.append(
             RiskFlag(
                 mode="prompt",
                 category="added hidden instruction",
                 severity="critical",
                 why="New prompt appears to add hidden or system-level instruction behavior.",
-                new_text=_snippet(new_text, "hidden"),
+                new_text=_snippet(new_text, "instruction"),
             )
         )
 
-    old_safety = _has(old, r"\b(refuse|unsafe|safety|safe|policy|legal|medical|financial|harmful)\b")
-    new_safety = _has(new, r"\b(refuse|unsafe|safety|safe|policy|legal|medical|financial|harmful)\b")
+    if (
+        bool(_SECRECY_RE.search(old_text))
+        and not bool(_SECRECY_RE.search(new_text))
+        and bool(_DISCLOSE_RE.search(new_text))
+    ):
+        flags.append(
+            RiskFlag(
+                mode="prompt",
+                category="removed secrecy obligation",
+                severity="critical",
+                why="Old prompt required secrecy; new prompt allows disclosure.",
+                old_text=_snippet(old_text, "reveal"),
+                new_text=_snippet(new_text, "reveal"),
+            )
+        )
+
+    _safety_re = (
+        r"\b(refuse|unsafe|safety|safe|policy|legal|financial|harmful|disclaimer|must not)\b"
+    )
+    old_safety = _has(old, _safety_re)
+    new_safety = _has(new, _safety_re)
     if old_safety and not new_safety:
         flags.append(
             RiskFlag(
@@ -443,7 +507,10 @@ def _prompt_risks(old_text: str, new_text: str) -> list[RiskFlag]:
             )
         )
 
-    if _has(old, r"\b(scope limited|limited to|only use|only answer|supplied document|provided context)\b") and _has(
+    if _has(
+        old,
+        r"\b(scope limited|limited to|only use|only answer|supplied document|provided context)\b",
+    ) and _has(
         new, r"\b(any request|all requests|without limitation|unrestricted|ignore constraints)\b"
     ):
         flags.append(
@@ -469,7 +536,9 @@ def _prompt_risks(old_text: str, new_text: str) -> list[RiskFlag]:
             )
         )
 
-    if _has(new, r"\b(any request|all requests|without limitation|unrestricted|ignore constraints)\b") and not _has(
+    if _has(
+        new, r"\b(any request|all requests|without limitation|unrestricted|ignore constraints)\b"
+    ) and not _has(
         old, r"\b(any request|all requests|without limitation|unrestricted|ignore constraints)\b"
     ):
         flags.append(
@@ -496,9 +565,7 @@ def _prompt_risks(old_text: str, new_text: str) -> list[RiskFlag]:
     return flags
 
 
-def _default_risks(
-    old_text: str, new_text: str, claim_diff: ClaimDiff | None
-) -> list[RiskFlag]:
+def _default_risks(old_text: str, new_text: str, claim_diff: ClaimDiff | None) -> list[RiskFlag]:
     flags: list[RiskFlag] = []
     old = old_text.lower()
     new = new_text.lower()
@@ -594,7 +661,8 @@ def _title_terms(text: str) -> set[str]:
     return {
         match.group(0).lower()
         for match in re.finditer(
-            r"\b(?:intern|junior|senior|staff|principal|lead|manager|director|engineer|scientist|architect)\b",
+            r"\b(?:intern|junior|senior|staff|principal|lead|manager|director|engineer|scientist|"
+            r"architect|analyst|developer|associate|specialist|consultant|researcher|coordinator)\b",
             text,
             flags=re.IGNORECASE,
         )
@@ -604,7 +672,9 @@ def _title_terms(text: str) -> set[str]:
 def _capitalized_entities(text: str) -> set[str]:
     return {
         normalize_whitespace(match.group(0))
-        for match in re.finditer(r"\b[A-Z][A-Za-z0-9&.+-]+(?:\s+[A-Z][A-Za-z0-9&.+-]+){0,2}\b", text)
+        for match in re.finditer(
+            r"\b[A-Z][A-Za-z0-9&.+-]+(?:\s+[A-Z][A-Za-z0-9&.+-]+){0,2}\b", text
+        )
     }
 
 

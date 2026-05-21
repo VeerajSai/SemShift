@@ -1,4 +1,4 @@
-"""GitHub Action entrypoint for semshift."""
+"""GitHub Action entrypoint for SemShift."""
 
 from __future__ import annotations
 
@@ -6,17 +6,26 @@ import argparse
 import glob
 import json
 import os
+import re
 import subprocess
-import sys
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from rich.console import Console
+from rich.markup import escape as rich_escape
+
 from semshift.core.embeddings import DEFAULT_MODEL
-from semshift.core.loader import SUPPORTED_EXTENSIONS
+from semshift.core.loader import DEFAULT_MAX_FILE_SIZE, SUPPORTED_EXTENSIONS, FileLoadError
 from semshift.core.report import markdown_report
-from semshift.core.semantic_diff import SemanticDiffResult, compare_text
+from semshift.core.semantic_diff import DEFAULT_MAX_CHUNKS, SemanticDiffResult, compare_text
 from semshift.utils.scoring import LABEL_ORDER, label_meets
+from semshift.utils.text import escape_markdown_text, markdown_code
+
+MAX_COMMENT_LENGTH = 60_000
+SAFE_REF_RE = re.compile(r"^[A-Za-z0-9._/\-~^]+$")
+CONSOLE = Console()
+ERROR_CONSOLE = Console(stderr=True)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -35,95 +44,159 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--report", default="semshift-report.md")
     parser.add_argument("--base-ref", default="", help="Base branch/ref to compare against.")
-    parser.add_argument("--pr-comment", default="false", help="Post or update a pull request comment.")
+    parser.add_argument(
+        "--pr-comment", default="false", help="Post or update a pull request comment."
+    )
     parser.add_argument("--github-token", default="", help="GitHub token for PR comments.")
+    parser.add_argument("--max-file-size", type=int, default=DEFAULT_MAX_FILE_SIZE)
+    parser.add_argument("--max-chunks", type=int, default=DEFAULT_MAX_CHUNKS)
     args = parser.parse_args(argv)
 
+    repo_root = _repo_root()
     base_ref = args.base_ref or os.environ.get("GITHUB_BASE_REF") or "HEAD^"
+    if not _is_safe_ref(base_ref):
+        ERROR_CONSOLE.print(f"[red]SemShift error:[/red] unsafe base ref: {rich_escape(base_ref)}")
+        return 2
+
+    report_path = _safe_output_path(args.report, repo_root)
+    if report_path is None:
+        ERROR_CONSOLE.print(
+            f"[red]SemShift error:[/red] unsafe report path: {rich_escape(args.report)}"
+        )
+        return 2
+
     files = _resolve_files(args.files, base_ref)
     if not files:
-        print("No supported files were provided or changed. Nothing to compare.")
+        CONSOLE.print("No supported files were provided or changed. Nothing to compare.")
         _write_action_summary("# SemShift\n\nNo supported files were compared.\n")
+        _write_action_outputs([], report_path)
         return 0
 
     results: list[SemanticDiffResult] = []
+    skipped: list[str] = []
     failed = False
 
     for file_name in files:
-        new_path = Path(file_name)
-        old_text = _git_show(base_ref, file_name)
-        new_text = new_path.read_text(encoding="utf-8", errors="replace") if new_path.exists() else ""
-        if old_text is None and not new_text:
-            print(f"Skipping {file_name}: not present in base or working tree.")
+        try:
+            old_text = _git_show(base_ref, file_name)
+            new_text, warnings = _read_worktree_text(
+                file_name,
+                repo_root=repo_root,
+                max_file_size=args.max_file_size,
+            )
+        except FileLoadError as exc:
+            skipped.append(str(exc))
+            CONSOLE.print(
+                f"[yellow]Skipping[/yellow] {rich_escape(file_name)}: {rich_escape(str(exc))}"
+            )
             continue
-        result = compare_text(
-            old=old_text or "",
-            new=new_text,
-            mode=args.mode,
-            model=args.model,
-            old_label=f"{base_ref}:{file_name}",
-            new_label=file_name,
-        )
+
+        if old_text is None and not new_text:
+            message = f"not present in base or working tree: {file_name}"
+            skipped.append(message)
+            CONSOLE.print(
+                f"[yellow]Skipping[/yellow] {rich_escape(file_name)}: {rich_escape(message)}"
+            )
+            continue
+
+        try:
+            result = compare_text(
+                old=old_text or "",
+                new=new_text,
+                mode=args.mode,
+                model=args.model,
+                max_chunks=args.max_chunks,
+                old_label=f"{base_ref}:{file_name}",
+                new_label=file_name,
+                input_warnings=tuple(warnings),
+            )
+        except ValueError as exc:
+            ERROR_CONSOLE.print(f"[red]SemShift error:[/red] {rich_escape(str(exc))}")
+            return 2
+
         results.append(result)
-        print(f"{file_name}: {result.overall_score:.2f} {result.drift_label.upper()}")
+        CONSOLE.print(
+            f"{rich_escape(file_name)}: {result.overall_score:.2f} {result.drift_label.upper()}"
+        )
         try:
             if args.fail_on and label_meets(result.drift_label, args.fail_on):
                 failed = True
         except ValueError as exc:
-            print(f"SemShift error: {exc}", file=sys.stderr)
+            ERROR_CONSOLE.print(f"[red]SemShift error:[/red] {rich_escape(str(exc))}")
             return 2
 
-    report_path = Path(args.report)
-    report = _combined_markdown(results)
+    report = _combined_markdown(results, skipped=skipped)
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(report, encoding="utf-8")
-    _write_action_summary(_summary_markdown(results, args.fail_on, report_path))
+    _write_action_summary(_summary_markdown(results, args.fail_on, report_path, skipped=skipped))
     _write_action_outputs(results, report_path)
     if _truthy(args.pr_comment):
-        _maybe_post_pr_comment(_pr_comment_body(results, report_path), args.github_token)
-    print(f"SemShift report written to {report_path}")
+        _maybe_post_pr_comment(
+            _pr_comment_body(results, report_path, skipped=skipped), args.github_token
+        )
+    CONSOLE.print(f"SemShift report written to {report_path}")
     return 1 if failed else 0
 
 
+def _repo_root() -> Path:
+    try:
+        completed = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return Path.cwd().resolve()
+    return Path(completed.stdout.strip()).resolve()
+
+
 def _resolve_files(raw_files: str, base_ref: str) -> list[str]:
+    """Resolve explicit files/globs or changed files into safe repo-relative paths."""
+    repo_root = _repo_root()
     patterns = [item.strip() for item in raw_files.split(",") if item.strip()]
     if not patterns:
         return _changed_supported_files(base_ref)
 
     files: set[str] = set()
     for pattern in patterns:
-        matches = glob.glob(pattern, recursive=True)
-        if matches:
-            for match in matches:
-                path = Path(match)
-                if path.is_file() and _is_supported(path):
-                    files.add(path.as_posix())
-        else:
-            path = Path(pattern)
-            if _is_supported(path):
-                files.add(path.as_posix())
+        for match in glob.glob(pattern, recursive=True) or [pattern]:
+            normalized = _normalize_repo_path(match, repo_root)
+            if normalized is not None and _is_supported(Path(normalized)):
+                path = repo_root / normalized
+                if path.exists() and not path.is_file():
+                    continue
+                files.add(normalized)
     return sorted(files)
 
 
 def _changed_supported_files(base_ref: str) -> list[str]:
-    candidates = [f"origin/{base_ref}...HEAD", f"{base_ref}...HEAD", f"{base_ref}"]
+    """Return changed supported files using NUL-delimited git output."""
+    if not _is_safe_ref(base_ref):
+        return []
+    repo_root = _repo_root()
+    candidates = [f"origin/{base_ref}...HEAD", f"{base_ref}...HEAD", base_ref]
     for candidate in candidates:
         try:
             completed = subprocess.run(
-                ["git", "diff", "--name-only", "--diff-filter=ACMRD", candidate],
+                ["git", "diff", "--name-only", "-z", "--diff-filter=ACMRD", candidate],
                 check=True,
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
                 errors="replace",
             )
-        except subprocess.CalledProcessError:
+        except (OSError, subprocess.CalledProcessError):
             continue
-        files = [
-            line.strip()
-            for line in completed.stdout.splitlines()
-            if line.strip() and _is_supported(Path(line.strip()))
-        ]
+        files = []
+        for raw in completed.stdout.split("\0"):
+            if not raw:
+                continue
+            normalized = _normalize_repo_path(raw, repo_root)
+            if normalized is not None and _is_supported(Path(normalized)):
+                files.append(normalized)
         if files:
             return sorted(set(files))
     return []
@@ -134,11 +207,18 @@ def _is_supported(path: Path) -> bool:
 
 
 def _git_show(base_ref: str, file_name: str) -> str | None:
-    refs = [f"origin/{base_ref}:{file_name}", f"{base_ref}:{file_name}"]
+    """Read a file from a safe git ref without invoking a shell."""
+    if not _is_safe_ref(base_ref):
+        return None
+    repo_root = _repo_root()
+    normalized = _normalize_repo_path(file_name, repo_root)
+    if normalized is None:
+        return None
+    refs = [f"origin/{base_ref}:{normalized}", f"{base_ref}:{normalized}"]
     for ref in refs:
         try:
             completed = subprocess.run(
-                ["git", "show", ref],
+                ["git", "show", "--no-ext-diff", ref],
                 check=True,
                 capture_output=True,
                 text=True,
@@ -146,40 +226,78 @@ def _git_show(base_ref: str, file_name: str) -> str | None:
                 errors="replace",
             )
             return completed.stdout
-        except subprocess.CalledProcessError:
+        except (OSError, subprocess.CalledProcessError):
             continue
     return None
 
 
-def _combined_markdown(results: list[SemanticDiffResult]) -> str:
-    if not results:
+def _read_worktree_text(
+    file_name: str,
+    *,
+    repo_root: Path,
+    max_file_size: int,
+) -> tuple[str, list[str]]:
+    normalized = _normalize_repo_path(file_name, repo_root)
+    if normalized is None:
+        raise FileLoadError(f"unsafe path rejected: {file_name}")
+    path = repo_root / normalized
+    if not path.exists():
+        return "", []
+    from semshift.core.loader import load_text_file_with_warnings
+
+    loaded = load_text_file_with_warnings(path, max_file_size=max_file_size)
+    return loaded.text, list(loaded.warnings)
+
+
+def _combined_markdown(
+    results: list[SemanticDiffResult],
+    *,
+    skipped: list[str] | None = None,
+) -> str:
+    if not results and not skipped:
         return "# SemShift Report\n\nNo matching files were compared.\n"
 
     sections = ["# SemShift Report", ""]
-    sections.extend(_summary_table(results))
-    sections.append("")
-    for result in results:
-        sections.append(markdown_report(result).replace("# SemShift Report", "## File Report", 1))
+    if results:
+        sections.extend(_summary_table(results))
         sections.append("")
-    return "\n".join(sections)
+        for result in results:
+            sections.append(
+                markdown_report(result).replace("# SemShift Report", "## File Report", 1)
+            )
+            sections.append("")
+    if skipped:
+        sections.extend(["## Skipped Files", ""])
+        sections.extend(f"- {escape_markdown_text(item)}" for item in skipped)
+        sections.append("")
+    sections.append(
+        "_SemShift flags likely semantic drift. It is not a legal opinion, "
+        "fact-checker, scientific authority, or replacement for human review._"
+    )
+    return "\n".join(sections).rstrip() + "\n"
 
 
 def _summary_markdown(
     results: list[SemanticDiffResult],
     fail_on: str,
     report_path: Path,
+    *,
+    skipped: list[str] | None = None,
 ) -> str:
     lines = ["# SemShift", ""]
     if not results:
-        return "# SemShift\n\nNo supported files were compared.\n"
-
-    worst = _worst_label(results)
-    lines.append(f"Compared **{len(results)}** file(s). Worst drift: **{worst.upper()}**.")
-    if fail_on:
-        lines.append(f"Failure threshold: `{fail_on}`.")
-    lines.append(f"Full report artifact: `{report_path}`.")
-    lines.append("")
-    lines.extend(_summary_table(results))
+        lines.append("No supported files were compared.")
+    else:
+        worst = _worst_label(results)
+        lines.append(f"Compared **{len(results)}** file(s). Worst drift: **{worst.upper()}**.")
+        if fail_on:
+            lines.append(f"Failure threshold: `{fail_on}`.")
+        lines.append(f"Full report artifact: {markdown_code(report_path.as_posix())}.")
+        lines.append("")
+        lines.extend(_summary_table(results))
+    if skipped:
+        lines.extend(["", "Skipped files:", ""])
+        lines.extend(f"- {escape_markdown_text(item)}" for item in skipped[:10])
     lines.append("")
     return "\n".join(lines)
 
@@ -192,7 +310,7 @@ def _summary_table(results: list[SemanticDiffResult]) -> list[str]:
     for result in results:
         lines.append(
             "| "
-            f"`{result.new_label}` | "
+            f"{markdown_code(result.new_label, max_chars=140)} | "
             f"{result.overall_score:.2f} | "
             f"{result.drift_label.upper()} | "
             f"{len(result.risk_flags)} | "
@@ -218,20 +336,45 @@ def _write_action_outputs(results: list[SemanticDiffResult], report_path: Path) 
         handle.write(f"worst_label={_worst_label(results)}\n")
 
 
-def _pr_comment_body(results: list[SemanticDiffResult], report_path: Path) -> str:
+def _pr_comment_body(
+    results: list[SemanticDiffResult],
+    report_path: str | Path,
+    *,
+    skipped: list[str] | None = None,
+) -> str:
     body = ["<!-- semshift-report -->", "# SemShift semantic review", ""]
     if not results:
         body.append("No supported files were compared.")
-        return "\n".join(body) + "\n"
+    else:
+        worst = _worst_label(results)
+        body.append(f"Compared **{len(results)}** file(s). Worst drift: **{worst.upper()}**.")
+        body.append(
+            "Full Markdown report is available in the workflow artifact: "
+            f"{markdown_code(Path(report_path).as_posix())}."
+        )
+        body.append("")
+        body.extend(_summary_table(results))
+    if skipped:
+        body.extend(["", "Skipped files:", ""])
+        body.extend(f"- {escape_markdown_text(item)}" for item in skipped[:10])
+    body.extend(
+        [
+            "",
+            "_SemShift flags likely semantic drift. It is not a legal opinion, fact-checker, "
+            "scientific authority, or replacement for human review._",
+        ]
+    )
+    return _truncate_comment_body("\n".join(body) + "\n")
 
-    worst = _worst_label(results)
-    body.append(f"Compared **{len(results)}** file(s). Worst drift: **{worst.upper()}**.")
-    body.append(f"Full markdown report is available in the workflow artifact: `{report_path}`.")
-    body.append("")
-    body.extend(_summary_table(results))
-    body.append("")
-    body.append("_SemShift is heuristic. Treat this as a review queue, not a final verdict._")
-    return "\n".join(body) + "\n"
+
+def _truncate_comment_body(body: str, *, max_length: int = MAX_COMMENT_LENGTH) -> str:
+    if len(body) <= max_length:
+        return body
+    footer = (
+        "\n\n_Report truncated for GitHub comment length. "
+        "Open the SemShift report artifact for full details._\n"
+    )
+    return body[: max_length - len(footer)].rstrip() + footer
 
 
 def _maybe_post_pr_comment(body: str, github_token: str) -> None:
@@ -239,25 +382,27 @@ def _maybe_post_pr_comment(body: str, github_token: str) -> None:
     event_path = os.environ.get("GITHUB_EVENT_PATH")
     repo = os.environ.get("GITHUB_REPOSITORY")
     if not token or not event_path or not repo:
-        print("Skipping PR comment: missing GITHUB_TOKEN, GITHUB_EVENT_PATH, or GITHUB_REPOSITORY.")
+        CONSOLE.print(
+            "Skipping PR comment: missing GITHUB_TOKEN, GITHUB_EVENT_PATH, or GITHUB_REPOSITORY."
+        )
         return
 
     try:
         event = json.loads(Path(event_path).read_text(encoding="utf-8"))
         number = event.get("pull_request", {}).get("number") or event.get("number")
         if not number:
-            print("Skipping PR comment: this event is not a pull request.")
+            CONSOLE.print("Skipping PR comment: this event is not a pull request.")
             return
         comments_url = f"https://api.github.com/repos/{repo}/issues/{number}/comments"
         existing_url = _find_existing_comment(comments_url, token)
         if existing_url:
             _github_request(existing_url, token, method="PATCH", payload={"body": body})
-            print("Updated SemShift PR comment.")
+            CONSOLE.print("Updated SemShift PR comment.")
         else:
             _github_request(comments_url, token, method="POST", payload={"body": body})
-            print("Created SemShift PR comment.")
+            CONSOLE.print("Created SemShift PR comment.")
     except (OSError, KeyError, ValueError, HTTPError, URLError) as exc:
-        print(f"Skipping PR comment: {exc}", file=sys.stderr)
+        ERROR_CONSOLE.print(f"Skipping PR comment: {rich_escape(str(exc))}")
 
 
 def _find_existing_comment(comments_url: str, token: str) -> str | None:
@@ -295,6 +440,57 @@ def _github_request(
     with urlopen(request, timeout=15) as response:
         raw = response.read().decode("utf-8")
     return json.loads(raw) if raw else {}
+
+
+def _safe_output_path(raw_path: str, repo_root: Path) -> Path | None:
+    normalized = _normalize_lexical_path(raw_path)
+    if normalized is None:
+        return None
+    output_path = (repo_root / normalized).resolve()
+    if not _is_relative_to(output_path, repo_root):
+        return None
+    return output_path
+
+
+def _normalize_repo_path(raw_path: str, repo_root: Path) -> str | None:
+    normalized = _normalize_lexical_path(raw_path)
+    if normalized is None:
+        return None
+    candidate = repo_root / normalized
+    if candidate.exists():
+        resolved = candidate.resolve()
+        if not _is_relative_to(resolved, repo_root.resolve()):
+            return None
+        try:
+            return resolved.relative_to(repo_root.resolve()).as_posix()
+        except ValueError:
+            return None
+    return normalized.as_posix()
+
+
+def _normalize_lexical_path(raw_path: str) -> Path | None:
+    if "\x00" in raw_path:
+        return None
+    path = Path(raw_path)
+    if path.is_absolute() or path.drive:
+        return None
+    if any(part in {"", ".", ".."} for part in path.parts):
+        return None
+    if not path.parts:
+        return None
+    return Path(*path.parts)
+
+
+def _is_relative_to(path: Path, parent: Path) -> bool:
+    try:
+        path.relative_to(parent)
+        return True
+    except ValueError:
+        return False
+
+
+def _is_safe_ref(ref: str) -> bool:
+    return bool(ref and SAFE_REF_RE.fullmatch(ref) and ".." not in ref and not ref.startswith("-"))
 
 
 def _truthy(value: str) -> bool:

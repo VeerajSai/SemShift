@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from rich.console import Console
@@ -18,7 +17,7 @@ from semshift.core.semantic_diff import (
     compact_warning,
     top_meaning_changes,
 )
-from semshift.utils.text import truncate
+from semshift.utils.text import escape_markdown_text, markdown_code, truncate
 
 LABEL_STYLE = {
     "low": "green",
@@ -30,7 +29,7 @@ LABEL_STYLE = {
 
 def result_to_json(result: SemanticDiffResult, *, indent: int = 2) -> str:
     """Serialize a result to JSON."""
-    return json.dumps(result.to_dict(), indent=indent)
+    return result.to_json(indent=indent)
 
 
 def print_rich_report(
@@ -45,12 +44,13 @@ def print_rich_report(
     title = Text("SemShift Report", style="bold")
     subtitle = (
         f"{result.old_label} -> {result.new_label}\n"
-        f"Mode: {result.mode} | Backend: {result.embedding_backend or 'unknown'}"
+        f"Mode: {result.mode} | Backend: {result.embedding_backend or 'unknown'} "
+        f"({result.embedding_backend_type})"
     )
     console.print(Panel(subtitle, title=title, border_style="cyan"))
 
     score_text = Text()
-    score_text.append("Overall semantic drift: ", style="bold")
+    score_text.append("Overall drift score: ", style="bold")
     score_text.append(f"{result.overall_score:.2f} ", style=style)
     score_text.append(result.drift_label.upper(), style=style)
     console.print(score_text)
@@ -102,7 +102,7 @@ def write_markdown_report(result: SemanticDiffResult, path: str | Path, *, top: 
     """Write a polished markdown report to disk."""
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(markdown_report(result, top=top), encoding="utf-8")
+    output_path.write_text(result.to_markdown(top=top), encoding="utf-8")
     return output_path
 
 
@@ -111,16 +111,16 @@ def markdown_report(result: SemanticDiffResult, *, top: int = 5) -> str:
     lines = [
         "# SemShift Report",
         "",
-        f"**Files:** `{result.old_label}` -> `{result.new_label}`",
-        f"**Mode:** `{result.mode}`",
-        f"**Embedding backend:** `{result.embedding_backend or 'unknown'}`",
+        f"**Files:** {markdown_code(result.old_label)} -> {markdown_code(result.new_label)}",
+        f"**Mode:** {markdown_code(result.mode)}",
+        f"**Backend:** {markdown_code(result.embedding_backend or 'unknown')} ({result.embedding_backend_type})",
         "",
-        f"**Overall semantic drift:** `{result.overall_score:.2f}` **{result.drift_label.upper()}**",
+        f"**Overall drift score:** `{result.overall_score:.2f}` **{result.drift_label.upper()}**",
         "",
         "## Summary",
         "",
     ]
-    lines.extend(f"- {item}" for item in result.summary)
+    lines.extend(f"- {escape_markdown_text(item)}" for item in result.summary)
 
     lines.extend(["", "## Score Breakdown", ""])
     for key, value in result.scores.to_dict().items():
@@ -132,13 +132,13 @@ def markdown_report(result: SemanticDiffResult, *, top: int = 5) -> str:
         for index, match in enumerate(changes, start=1):
             lines.extend(
                 [
-                    f"### {index}. {chunk_section(match)}",
+                    f"### {index}. {escape_markdown_text(chunk_section(match))}",
                     "",
                     f"- **Status:** {match.status}",
                     f"- **Drift:** `{match.drift_score:.2f}`",
-                    f"- **Old:** {chunk_old_text(match)}",
-                    f"- **New:** {chunk_new_text(match)}",
-                    f"- **Why it matters:** {match.why_it_matters}",
+                    f"- **Old:** {escape_markdown_text(chunk_old_text(match))}",
+                    f"- **New:** {escape_markdown_text(chunk_new_text(match))}",
+                    f"- **Why it matters:** {escape_markdown_text(match.why_it_matters)}",
                     "",
                 ]
             )
@@ -147,18 +147,27 @@ def markdown_report(result: SemanticDiffResult, *, top: int = 5) -> str:
     if claim_changes.change_count:
         lines.extend(["## Claim Signals", ""])
         for item in claim_changes.modified_numbers:
-            lines.append(f"- **Modified number:** {item['old']} -> {item['new']}")
+            lines.append(
+                f"- **Modified number:** {escape_markdown_text(str(item['old']))} -> "
+                f"{escape_markdown_text(str(item['new']))}"
+            )
         for item in claim_changes.strengthened_claims:
-            lines.append(f"- **Strengthened:** {item.get('old', '')} -> {item.get('new', '')}")
+            lines.append(
+                f"- **Strengthened:** {escape_markdown_text(item.get('old', ''))} -> "
+                f"{escape_markdown_text(item.get('new', ''))}"
+            )
         for item in claim_changes.softened_claims:
-            lines.append(f"- **Softened:** {item.get('old', '')} -> {item.get('new', '')}")
+            lines.append(
+                f"- **Softened:** {escape_markdown_text(item.get('old', ''))} -> "
+                f"{escape_markdown_text(item.get('new', ''))}"
+            )
         for label, items in (
             ("Added", claim_changes.added_claims),
             ("Removed", claim_changes.removed_claims),
         ):
             visible, hidden_count = _visible_claim_items(items)
             for item in visible:
-                lines.append(f"- **{label}:** {item}")
+                lines.append(f"- **{label}:** {escape_markdown_text(item)}")
             if hidden_count:
                 lines.append(f"- **{label}:** {hidden_count} lower-signal entity claim(s) hidden")
         lines.append("")
@@ -166,15 +175,18 @@ def markdown_report(result: SemanticDiffResult, *, top: int = 5) -> str:
     if result.risk_flags:
         lines.extend(["## Risk Flags", ""])
         for flag in result.risk_flags:
-            lines.append(f"- **{flag.severity.upper()} {flag.category}:** {flag.why}")
+            lines.append(
+                f"- **{flag.severity.upper()} {escape_markdown_text(flag.category)}:** "
+                f"{escape_markdown_text(flag.why)}"
+            )
         lines.append("")
 
     lines.extend(["## Recommended Next Steps", ""])
-    lines.extend(f"- {item}" for item in result.recommendations)
+    lines.extend(f"- {escape_markdown_text(item)}" for item in result.recommendations)
 
     if result.warnings:
         lines.extend(["", "## Warnings", ""])
-        lines.extend(f"- {warning}" for warning in result.warnings)
+        lines.extend(f"- {escape_markdown_text(warning)}" for warning in result.warnings)
 
     return "\n".join(lines).rstrip() + "\n"
 

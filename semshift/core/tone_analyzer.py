@@ -30,7 +30,6 @@ CONFIDENT = (
     "reliable",
     "accurate",
     "secure",
-    "best",
 )
 PROMOTIONAL = (
     "effortless",
@@ -52,6 +51,8 @@ RESTRICTIVE = (
     "cannot",
     "shall not",
     "restricted",
+    "disclaimer",
+    "refuse",
 )
 TECHNICAL = (
     "api",
@@ -71,8 +72,9 @@ RISKY = (
     "retain",
     "liability",
     "arbitration",
-    "guarantee",
-    "unlimited",
+    "transfer",
+    "disclose",
+    "monetize",
     "without consent",
 )
 
@@ -123,7 +125,7 @@ def analyze_tone(text: str) -> ToneProfile:
         "technical": _keyword_count(lowered, TECHNICAL),
         "risky": _keyword_count(lowered, RISKY),
     }
-    scores = {key: clamp(value / max(4, word_count / 30)) for key, value in raw_scores.items()}
+    scores = {key: clamp(value / max(6, word_count / 20)) for key, value in raw_scores.items()}
     label = _label_for_scores(raw_scores)
     features = [key for key, value in raw_scores.items() if value > 0]
     return ToneProfile(label=label, scores=scores, features=features)
@@ -134,7 +136,7 @@ def compare_tone(old_text: str, new_text: str) -> ToneShift:
     old = analyze_tone(old_text)
     new = analyze_tone(new_text)
     diff_score = sum(abs(new.scores[key] - old.scores.get(key, 0.0)) for key in new.scores)
-    score = clamp(diff_score / 2.5)
+    score = clamp(diff_score / 2.0)
 
     shift = _named_shift(old.label, new.label, old.scores, new.scores)
     if shift == "unchanged":
@@ -196,4 +198,3 @@ def _named_shift(
     if new_scores.get("risky", 0.0) > old_scores.get("risky", 0.0) + 0.2:
         return "safe_to_risky"
     return f"{old_label}_to_{new_label}"
-

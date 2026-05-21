@@ -4,5 +4,4 @@ from semshift.core.semantic_diff import SemanticDiffResult, compare_files, compa
 
 __all__ = ["SemanticDiffResult", "compare_files", "compare_text"]
 
-__version__ = "0.1.0"
-
+__version__ = "0.2.0"

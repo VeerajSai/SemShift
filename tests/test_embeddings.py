@@ -1,5 +1,7 @@
 """Tests for embedding backends."""
 
+import pytest
+
 from semshift.core.embeddings import embed_texts
 
 
@@ -21,12 +23,8 @@ class TestTfidfEmbeddings:
             ["we share data with partners", "we may share data", "the cat sat on the mat"],
             model_name="tfidf",
         )
-        sim_similar = cosine_similarity(
-            result.vectors[0:1], result.vectors[1:2]
-        )[0][0]
-        sim_different = cosine_similarity(
-            result.vectors[0:1], result.vectors[2:3]
-        )[0][0]
+        sim_similar = cosine_similarity(result.vectors[0:1], result.vectors[1:2])[0][0]
+        sim_different = cosine_similarity(result.vectors[0:1], result.vectors[2:3])[0][0]
         assert sim_similar > sim_different
 
     def test_identical_texts_have_maximum_similarity(self):
@@ -54,8 +52,10 @@ class TestTfidfEmbeddings:
         result = embed_texts(["some text"], model_name="tfidf")
         assert result.warnings == ()
 
-    def test_invalid_model_falls_back_to_tfidf(self):
-        result = embed_texts(["some text"], model_name="nonexistent-model-xyz-123")
-        assert "tfidf" in result.backend
-        assert len(result.warnings) > 0
-        assert "nonexistent-model-xyz-123" in result.warnings[0]
+    def test_invalid_model_is_rejected(self) -> None:
+        with pytest.raises(ValueError, match="Unknown model"):
+            embed_texts(["some text"], model_name="nonexistent-model-xyz-123")
+
+    def test_obvious_tfidf_typo_is_rejected(self) -> None:
+        with pytest.raises(ValueError, match="Unknown model"):
+            embed_texts(["some text"], model_name="tfdif")

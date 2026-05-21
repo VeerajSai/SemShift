@@ -12,7 +12,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from semshift.core.chunker import TextChunk, chunk_text
 from semshift.core.claim_extractor import ClaimDiff, compare_claims
 from semshift.core.embeddings import DEFAULT_MODEL, embed_texts
-from semshift.core.loader import load_text_file
+from semshift.core.loader import DEFAULT_MAX_FILE_SIZE, load_text_file_with_warnings
 from semshift.core.modes import get_mode
 from semshift.core.risk_analyzer import RiskFlag, analyze_risk, risk_score
 from semshift.core.tone_analyzer import ToneShift, compare_tone
@@ -22,6 +22,7 @@ from semshift.utils.text import quote, token_set, truncate
 UNCHANGED_THRESHOLD = 0.90
 LIGHT_CHANGE_THRESHOLD = 0.72
 MATCH_THRESHOLD = 0.34
+DEFAULT_MAX_CHUNKS = 2000
 
 
 @dataclass(frozen=True)
@@ -86,29 +87,59 @@ class SemanticDiffResult:
     risk_flags: list[RiskFlag] = field(default_factory=list)
     recommendations: list[str] = field(default_factory=list)
     embedding_backend: str = ""
+    embedding_backend_type: str = "lexical"
     warnings: list[str] = field(default_factory=list)
+    metadata: dict[str, object] = field(default_factory=dict)
 
     @property
     def overall_score(self) -> float:
-        """Return the overall semantic drift score."""
+        """Return the overall drift score."""
         return self.scores.overall_semantic_drift
+
+    @property
+    def drift_score(self) -> float:
+        """Alias for the overall drift score."""
+        return self.overall_score
+
+    @property
+    def matched_chunks(self) -> list[ChunkMatch]:
+        """Alias for chunk matches for API consumers."""
+        return self.chunk_matches
 
     def to_dict(self) -> dict[str, object]:
         """Return structured JSON-compatible output."""
+        chunk_matches = [match.to_dict() for match in self.chunk_matches]
         return {
             "files": {"old": self.old_label, "new": self.new_label},
             "mode": self.mode,
             "scores": self.scores.to_dict(),
+            "overall_score": round(self.overall_score, 4),
+            "drift_score": round(self.drift_score, 4),
             "drift_label": self.drift_label,
             "summary": self.summary,
-            "chunk_matches": [match.to_dict() for match in self.chunk_matches],
+            "chunk_matches": chunk_matches,
+            "matched_chunks": chunk_matches,
             "claim_changes": self.claim_changes.to_dict(),
             "tone_shift": self.tone_shift.to_dict(),
             "risk_flags": [flag.to_dict() for flag in self.risk_flags],
             "recommendations": self.recommendations,
             "embedding_backend": self.embedding_backend,
+            "embedding_backend_type": self.embedding_backend_type,
             "warnings": self.warnings,
+            "metadata": self.metadata,
         }
+
+    def to_json(self, *, indent: int = 2) -> str:
+        """Serialize the result as stable JSON."""
+        import json
+
+        return json.dumps(self.to_dict(), indent=indent)
+
+    def to_markdown(self, *, top: int = 5) -> str:
+        """Render the result as a Markdown report."""
+        from semshift.core.report import markdown_report
+
+        return markdown_report(self, top=top)
 
 
 def compare_files(
@@ -117,17 +148,21 @@ def compare_files(
     *,
     mode: str = "default",
     model: str = DEFAULT_MODEL,
+    max_file_size: int = DEFAULT_MAX_FILE_SIZE,
+    max_chunks: int = DEFAULT_MAX_CHUNKS,
 ) -> SemanticDiffResult:
     """Compare two supported text files."""
-    old_text = load_text_file(old_path)
-    new_text = load_text_file(new_path)
+    old_loaded = load_text_file_with_warnings(old_path, max_file_size=max_file_size)
+    new_loaded = load_text_file_with_warnings(new_path, max_file_size=max_file_size)
     return compare_text(
-        old=old_text,
-        new=new_text,
+        old=old_loaded.text,
+        new=new_loaded.text,
         mode=mode,
         model=model,
+        max_chunks=max_chunks,
         old_label=str(old_path),
         new_label=str(new_path),
+        input_warnings=old_loaded.warnings + new_loaded.warnings,
     )
 
 
@@ -137,15 +172,24 @@ def compare_text(
     *,
     mode: str = "default",
     model: str = DEFAULT_MODEL,
+    max_chunks: int = DEFAULT_MAX_CHUNKS,
     old_label: str = "old text",
     new_label: str = "new text",
+    input_warnings: tuple[str, ...] = (),
 ) -> SemanticDiffResult:
     """Compare two strings and return a semantic diff result."""
+    if max_chunks <= 0:
+        raise ValueError("--max-chunks must be greater than zero")
     mode_config = get_mode(mode)
     old_chunks = chunk_text(old, path=old_label)
     new_chunks = chunk_text(new, path=new_label)
+    old_chunks, old_chunk_warnings = _limit_chunks(old_chunks, old_label, max_chunks)
+    new_chunks, new_chunk_warnings = _limit_chunks(new_chunks, new_label, max_chunks)
     matches, backend, warnings = _match_chunks(old_chunks, new_chunks, model)
-    result_warnings = list(warnings)
+    result_warnings = list(input_warnings)
+    result_warnings.extend(old_chunk_warnings)
+    result_warnings.extend(new_chunk_warnings)
+    result_warnings.extend(warnings)
     if not old.strip():
         result_warnings.append(f"Old input is empty: {old_label}")
     if not new.strip():
@@ -172,7 +216,26 @@ def compare_text(
         risk_flags=risk_flags,
         recommendations=recommendations,
         embedding_backend=backend,
+        embedding_backend_type=_backend_type(backend),
         warnings=result_warnings,
+        metadata={
+            "max_chunks": max_chunks,
+            "old_chunk_count": len(old_chunks),
+            "new_chunk_count": len(new_chunks),
+        },
+    )
+
+
+def _limit_chunks(
+    chunks: list[TextChunk],
+    label: str,
+    max_chunks: int,
+) -> tuple[list[TextChunk], list[str]]:
+    if len(chunks) <= max_chunks:
+        return chunks, []
+    return (
+        chunks[:max_chunks],
+        [f"Input exceeded --max-chunks and was truncated: {label} ({len(chunks)} > {max_chunks})"],
     )
 
 
@@ -184,27 +247,35 @@ def _match_chunks(
     if not old_chunks and not new_chunks:
         return [], "none", ()
     if not old_chunks:
-        return [
-            ChunkMatch(
-                status="added",
-                similarity=0.0,
-                drift_score=0.75,
-                new_chunk=chunk,
-                why_it_matters="New meaning was added.",
-            )
-            for chunk in new_chunks
-        ], "none", ()
+        return (
+            [
+                ChunkMatch(
+                    status="added",
+                    similarity=0.0,
+                    drift_score=0.75,
+                    new_chunk=chunk,
+                    why_it_matters="New meaning was added.",
+                )
+                for chunk in new_chunks
+            ],
+            "none",
+            (),
+        )
     if not new_chunks:
-        return [
-            ChunkMatch(
-                status="removed",
-                similarity=0.0,
-                drift_score=0.75,
-                old_chunk=chunk,
-                why_it_matters="Existing meaning was removed.",
-            )
-            for chunk in old_chunks
-        ], "none", ()
+        return (
+            [
+                ChunkMatch(
+                    status="removed",
+                    similarity=0.0,
+                    drift_score=0.75,
+                    old_chunk=chunk,
+                    why_it_matters="Existing meaning was removed.",
+                )
+                for chunk in old_chunks
+            ],
+            "none",
+            (),
+        )
 
     all_texts = [chunk.text for chunk in old_chunks] + [chunk.text for chunk in new_chunks]
     embeddings = embed_texts(all_texts, model_name=model)
@@ -290,6 +361,12 @@ def _match_chunks(
     return matches, embeddings.backend, embeddings.warnings
 
 
+def _backend_type(backend: str) -> str:
+    if backend in {"tfidf", "tfidf-fallback", "none", "empty"}:
+        return "lexical"
+    return "semantic"
+
+
 def _status_for_similarity(similarity: float) -> str:
     if similarity >= UNCHANGED_THRESHOLD:
         return "unchanged"
@@ -363,7 +440,9 @@ def _score_result(
     old_chunks: list[TextChunk],
     new_chunks: list[TextChunk],
 ) -> DriftScores:
-    semantic_score = float(np.mean([match.drift_score for match in matches])) if matches else 0.0
+    drift_scores = [match.drift_score for match in matches]
+    raw_mean = float(np.nanmean(drift_scores)) if drift_scores else 0.0
+    semantic_score = 0.0 if np.isnan(raw_mean) else raw_mean
     added_score = _chunk_ratio(matches, "added", max(1, len(new_chunks)))
     removed_score = _chunk_ratio(matches, "removed", max(1, len(old_chunks)))
     claim_score = clamp(claim_changes.change_count / 8.0)
@@ -400,7 +479,9 @@ def _build_summary(
     tone_shift: ToneShift,
     risk_flags: list[RiskFlag],
 ) -> list[str]:
-    counts = {status: sum(1 for match in matches if match.status == status) for status in _statuses()}
+    counts = {
+        status: sum(1 for match in matches if match.status == status) for status in _statuses()
+    }
     summary = [
         f"{counts['added']} added meaning chunks",
         f"{counts['removed']} removed meaning chunks",
@@ -410,7 +491,10 @@ def _build_summary(
     if tone_shift.shift != "unchanged":
         summary.append(tone_shift.explanation)
     if risk_flags:
-        worst = max(risk_flags, key=lambda flag: {"low": 0, "medium": 1, "high": 2, "critical": 3}[flag.severity])
+        worst = max(
+            risk_flags,
+            key=lambda flag: {"low": 0, "medium": 1, "high": 2, "critical": 3}[flag.severity],
+        )
         summary.append(f"Risk increased: {worst.category} ({worst.severity}).")
     return summary
 
@@ -431,13 +515,21 @@ def _recommendations(
     if risk_flags:
         modes = {flag.mode for flag in risk_flags}
         if "policy" in modes:
-            recommendations.append("Route policy/privacy risk flags to the responsible legal or trust owner.")
+            recommendations.append(
+                "Route policy/privacy risk flags to the responsible legal or trust owner."
+            )
         elif "prompt" in modes:
-            recommendations.append("Run prompt changes through safety and behavior regression review.")
+            recommendations.append(
+                "Run prompt changes through safety and behavior regression review."
+            )
         elif "resume" in modes:
-            recommendations.append("Verify resume facts against the source of truth before using this rewrite.")
+            recommendations.append(
+                "Verify resume facts against the source of truth before using this rewrite."
+            )
         elif "research" in modes:
-            recommendations.append("Verify changed metrics, datasets, baselines, and conclusions before publication.")
+            recommendations.append(
+                "Verify changed metrics, datasets, baselines, and conclusions before publication."
+            )
         else:
             recommendations.append("Ask a domain owner to review risk flags.")
     if claim_changes.modified_numbers:
@@ -460,17 +552,23 @@ def _explain_chunk_change(old_text: str, new_text: str, status: str) -> str:
         return "Data-sharing policy changed."
     if _number_near(old_lower, "retain") and _number_near(new_lower, "retain"):
         return "Retention period or retention conditions changed."
-    if "opt out" in old_lower and any(term in new_lower for term in ("required", "must accept", "no opt")):
+    if "opt out" in old_lower and any(
+        term in new_lower for term in ("required", "must accept", "no opt")
+    ):
         return "User choice or consent language became more restrictive."
     if "arbitration" in new_lower and "arbitration" not in old_lower:
         return "Dispute resolution rights changed."
-    if any(term in new_lower for term in ("paid license", "commercial use requires", "subscription")):
+    if any(
+        term in new_lower for term in ("paid license", "commercial use requires", "subscription")
+    ):
         return "Commercial or licensing terms changed."
     if any(term in old_lower for term in ("accuracy", "f1", "baseline", "dataset")) and any(
         term in new_lower for term in ("accuracy", "f1", "baseline", "dataset")
     ):
         return "Research metric, dataset, or baseline claim changed."
-    if any(term in old_lower for term in ("preliminary", "may not", "do not evaluate", "limitation")) and any(
+    if any(
+        term in old_lower for term in ("preliminary", "may not", "do not evaluate", "limitation")
+    ) and any(
         term in new_lower for term in ("production-ready", "state-of-the-art", "proves", "delivers")
     ):
         return "Research caveat or limitation was replaced with stronger language."
@@ -478,9 +576,9 @@ def _explain_chunk_change(old_text: str, new_text: str, status: str) -> str:
         term in new_lower for term in ("proves", "state-of-the-art", "delivers")
     ):
         return "Conclusion language became stronger."
-    if any(term in old_lower + new_lower for term in ("latency", "users", "revenue", "retention")) and re.search(
-        r"\d", old_lower + new_lower
-    ):
+    if any(
+        term in old_lower + new_lower for term in ("latency", "users", "revenue", "retention")
+    ) and re.search(r"\d", old_lower + new_lower):
         return "Resume impact metric or factual numeric claim changed."
     if any(term in old_lower for term in ("may", "might", "limited", "experimental")) and any(
         term in new_lower for term in ("will", "always", "guaranteed", "reliable")

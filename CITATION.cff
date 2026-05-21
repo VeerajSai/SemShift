@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use SemShift, please cite it using this metadata."
+title: "SemShift"
+version: "0.2.0"
+authors:
+  - given-names: "Veeraj"
+    family-names: "Sai"
+repository-code: "https://github.com/VeerajSai/SemShift"
+license: "MIT"
+# Add DOI when paper is published

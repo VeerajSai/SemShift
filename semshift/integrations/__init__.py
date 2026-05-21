@@ -1,2 +1,1 @@
 """Integrations for semshift."""
-

@@ -29,16 +29,16 @@ class TestDriftLabel:
         assert drift_label(0.0) == "low"
 
     def test_just_below_medium_boundary(self):
-        assert drift_label(0.19) == "low"
+        assert drift_label(0.24) == "low"
 
     def test_at_medium_boundary(self):
-        assert drift_label(0.20) == "medium"
+        assert drift_label(0.25) == "medium"
 
     def test_just_below_high_boundary(self):
-        assert drift_label(0.44) == "medium"
+        assert drift_label(0.514) == "medium"
 
     def test_at_high_boundary(self):
-        assert drift_label(0.45) == "high"
+        assert drift_label(0.515) == "high"
 
     def test_just_below_critical_boundary(self):
         assert drift_label(0.69) == "high"

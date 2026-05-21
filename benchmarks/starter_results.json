@@ -1,0 +1,1300 @@
+{
+  "metadata": {
+    "benchmark": "semshift_bench_v1",
+    "model": "tfidf",
+    "example_count": 84,
+    "created_inside_repository": true,
+    "external_validation": false,
+    "elapsed_seconds": 0.416,
+    "mean_latency_ms": 4.937
+  },
+  "label_accuracy": 0.7143,
+  "tolerance_accuracy": 0.8393,
+  "macro_f1": 0.6859,
+  "per_label_metrics": {
+    "low": {
+      "precision": 0.8333,
+      "recall": 0.2632,
+      "f1": 0.4,
+      "true_positive": 5,
+      "false_positive": 1,
+      "false_negative": 14,
+      "true_negative": 64
+    },
+    "medium": {
+      "precision": 0.4878,
+      "recall": 0.9524,
+      "f1": 0.6452,
+      "true_positive": 20,
+      "false_positive": 21,
+      "false_negative": 1,
+      "true_negative": 42
+    },
+    "high": {
+      "precision": 0.9655,
+      "recall": 0.8,
+      "f1": 0.875,
+      "true_positive": 28,
+      "false_positive": 1,
+      "false_negative": 7,
+      "true_negative": 48
+    },
+    "critical": {
+      "precision": 0.875,
+      "recall": 0.7778,
+      "f1": 0.8235,
+      "true_positive": 7,
+      "false_positive": 1,
+      "false_negative": 2,
+      "true_negative": 74
+    }
+  },
+  "high_risk": {
+    "precision": 0.973,
+    "recall": 0.8182,
+    "f1": 0.8889,
+    "true_positive": 36,
+    "false_positive": 1,
+    "false_negative": 8,
+    "true_negative": 39
+  },
+  "benign_false_critical_rate": 0.0,
+  "benign_false_high_risk_rate": 0.0,
+  "mode_breakdown": {
+    "default": {
+      "count": 2,
+      "label_accuracy": 0.0
+    },
+    "policy": {
+      "count": 20,
+      "label_accuracy": 0.65
+    },
+    "prompt": {
+      "count": 15,
+      "label_accuracy": 0.6667
+    },
+    "readme": {
+      "count": 17,
+      "label_accuracy": 0.8235
+    },
+    "research": {
+      "count": 17,
+      "label_accuracy": 0.8824
+    },
+    "resume": {
+      "count": 13,
+      "label_accuracy": 0.6154
+    }
+  },
+  "label_counts": {
+    "expected": {
+      "critical": 9,
+      "high": 35,
+      "medium": 21,
+      "low": 19
+    },
+    "predicted": {
+      "critical": 8,
+      "high": 29,
+      "medium": 41,
+      "low": 6
+    }
+  },
+  "examples": [
+    {
+      "id": "policy-001",
+      "mode": "policy",
+      "expected_label": "critical",
+      "predicted_label": "critical",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "third-party sharing"
+      ],
+      "predicted_risk_categories": [
+        "third-party sharing"
+      ],
+      "latency_ms": 16.968
+    },
+    {
+      "id": "policy-002",
+      "mode": "policy",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "longer retention"
+      ],
+      "predicted_risk_categories": [
+        "longer retention"
+      ],
+      "latency_ms": 3.237
+    },
+    {
+      "id": "policy-003",
+      "mode": "policy",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "reduced consent"
+      ],
+      "predicted_risk_categories": [
+        "reduced consent",
+        "expanded tracking",
+        "user rights removal"
+      ],
+      "latency_ms": 3.483
+    },
+    {
+      "id": "policy-004",
+      "mode": "policy",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "sensitive data expansion"
+      ],
+      "predicted_risk_categories": [
+        "sensitive data expansion"
+      ],
+      "latency_ms": 3.188
+    },
+    {
+      "id": "policy-005",
+      "mode": "policy",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "user rights removal"
+      ],
+      "predicted_risk_categories": [
+        "user rights removal"
+      ],
+      "latency_ms": 2.936
+    },
+    {
+      "id": "policy-006",
+      "mode": "policy",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "mandatory arbitration"
+      ],
+      "predicted_risk_categories": [
+        "mandatory arbitration"
+      ],
+      "latency_ms": 3.569
+    },
+    {
+      "id": "policy-007",
+      "mode": "policy",
+      "expected_label": "critical",
+      "predicted_label": "critical",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "data sale/monetization"
+      ],
+      "predicted_risk_categories": [
+        "data sale/monetization"
+      ],
+      "latency_ms": 2.752
+    },
+    {
+      "id": "policy-008",
+      "mode": "policy",
+      "expected_label": "critical",
+      "predicted_label": "critical",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "indefinite retention"
+      ],
+      "predicted_risk_categories": [
+        "indefinite retention"
+      ],
+      "latency_ms": 2.665
+    },
+    {
+      "id": "policy-009",
+      "mode": "policy",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "expanded tracking"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 2.612
+    },
+    {
+      "id": "policy-010",
+      "mode": "policy",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "liability limitation"
+      ],
+      "predicted_risk_categories": [
+        "liability limitation"
+      ],
+      "latency_ms": 2.664
+    },
+    {
+      "id": "prompt-001",
+      "mode": "prompt",
+      "expected_label": "critical",
+      "predicted_label": "critical",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed safety rule",
+        "expanded allowed behavior"
+      ],
+      "predicted_risk_categories": [
+        "removed safety rule",
+        "expanded allowed behavior"
+      ],
+      "latency_ms": 4.133
+    },
+    {
+      "id": "prompt-002",
+      "mode": "prompt",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed scope constraint",
+        "expanded allowed behavior"
+      ],
+      "predicted_risk_categories": [
+        "removed scope constraint",
+        "expanded allowed behavior"
+      ],
+      "latency_ms": 3.401
+    },
+    {
+      "id": "prompt-003",
+      "mode": "prompt",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed output format"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 3.371
+    },
+    {
+      "id": "prompt-004",
+      "mode": "prompt",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "changed role/system instruction"
+      ],
+      "predicted_risk_categories": [
+        "changed role/system instruction"
+      ],
+      "latency_ms": 2.969
+    },
+    {
+      "id": "prompt-005",
+      "mode": "prompt",
+      "expected_label": "critical",
+      "predicted_label": "critical",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "added hidden instruction"
+      ],
+      "predicted_risk_categories": [
+        "added hidden instruction",
+        "removed secrecy obligation"
+      ],
+      "latency_ms": 3.302
+    },
+    {
+      "id": "prompt-006",
+      "mode": "prompt",
+      "expected_label": "critical",
+      "predicted_label": "critical",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed safety rule"
+      ],
+      "predicted_risk_categories": [
+        "removed safety rule"
+      ],
+      "latency_ms": 3.527
+    },
+    {
+      "id": "prompt-007",
+      "mode": "prompt",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed output format"
+      ],
+      "predicted_risk_categories": [
+        "changed output format"
+      ],
+      "latency_ms": 3.091
+    },
+    {
+      "id": "prompt-008",
+      "mode": "prompt",
+      "expected_label": "critical",
+      "predicted_label": "critical",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed safety rule"
+      ],
+      "predicted_risk_categories": [
+        "removed safety rule"
+      ],
+      "latency_ms": 2.905
+    },
+    {
+      "id": "prompt-009",
+      "mode": "prompt",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed scope constraint",
+        "expanded allowed behavior"
+      ],
+      "predicted_risk_categories": [
+        "removed scope constraint",
+        "expanded allowed behavior"
+      ],
+      "latency_ms": 3.857
+    },
+    {
+      "id": "prompt-010",
+      "mode": "prompt",
+      "expected_label": "high",
+      "predicted_label": "critical",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "changed role/system instruction"
+      ],
+      "predicted_risk_categories": [
+        "added hidden instruction",
+        "changed role/system instruction"
+      ],
+      "latency_ms": 3.273
+    },
+    {
+      "id": "research-001",
+      "mode": "research",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed limitation",
+        "stronger conclusion"
+      ],
+      "predicted_risk_categories": [
+        "stronger conclusion",
+        "removed uncertainty",
+        "changed dataset/baseline"
+      ],
+      "latency_ms": 5.034
+    },
+    {
+      "id": "research-002",
+      "mode": "research",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "increased metric claim"
+      ],
+      "predicted_risk_categories": [
+        "increased metric claim"
+      ],
+      "latency_ms": 4.361
+    },
+    {
+      "id": "research-003",
+      "mode": "research",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed dataset/baseline"
+      ],
+      "predicted_risk_categories": [
+        "changed dataset/baseline"
+      ],
+      "latency_ms": 4.784
+    },
+    {
+      "id": "research-004",
+      "mode": "research",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed dataset/baseline"
+      ],
+      "predicted_risk_categories": [
+        "changed dataset/baseline"
+      ],
+      "latency_ms": 3.312
+    },
+    {
+      "id": "research-005",
+      "mode": "research",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "stronger conclusion",
+        "removed uncertainty"
+      ],
+      "predicted_risk_categories": [
+        "removed uncertainty"
+      ],
+      "latency_ms": 4.048
+    },
+    {
+      "id": "research-006",
+      "mode": "research",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed limitation"
+      ],
+      "predicted_risk_categories": [
+        "removed limitation"
+      ],
+      "latency_ms": 3.435
+    },
+    {
+      "id": "research-007",
+      "mode": "research",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "increased metric claim"
+      ],
+      "predicted_risk_categories": [
+        "increased metric claim"
+      ],
+      "latency_ms": 4.133
+    },
+    {
+      "id": "research-008",
+      "mode": "research",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed limitation",
+        "stronger conclusion"
+      ],
+      "predicted_risk_categories": [
+        "removed limitation"
+      ],
+      "latency_ms": 3.634
+    },
+    {
+      "id": "research-009",
+      "mode": "research",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed numeric claim"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 3.703
+    },
+    {
+      "id": "research-010",
+      "mode": "research",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed uncertainty",
+        "stronger conclusion"
+      ],
+      "predicted_risk_categories": [
+        "removed limitation",
+        "removed uncertainty"
+      ],
+      "latency_ms": 3.737
+    },
+    {
+      "id": "resume-001",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "changed numbers"
+      ],
+      "predicted_risk_categories": [
+        "changed numbers",
+        "inflated impact"
+      ],
+      "latency_ms": 4.767
+    },
+    {
+      "id": "resume-002",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "changed titles"
+      ],
+      "predicted_risk_categories": [
+        "changed titles",
+        "changed company/project names"
+      ],
+      "latency_ms": 8.371
+    },
+    {
+      "id": "resume-003",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "changed numbers",
+        "inflated impact"
+      ],
+      "predicted_risk_categories": [
+        "changed numbers"
+      ],
+      "latency_ms": 4.332
+    },
+    {
+      "id": "resume-004",
+      "mode": "resume",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "inflated impact"
+      ],
+      "predicted_risk_categories": [
+        "changed company/project names"
+      ],
+      "latency_ms": 5.422
+    },
+    {
+      "id": "resume-005",
+      "mode": "resume",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed claim"
+      ],
+      "predicted_risk_categories": [
+        "changed company/project names"
+      ],
+      "latency_ms": 6.943
+    },
+    {
+      "id": "resume-006",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "changed numbers",
+        "changed metric"
+      ],
+      "predicted_risk_categories": [
+        "changed numbers"
+      ],
+      "latency_ms": 4.8
+    },
+    {
+      "id": "resume-007",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "medium",
+      "expected_high_risk": true,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed numbers",
+        "inflated impact"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.683
+    },
+    {
+      "id": "resume-008",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "changed titles"
+      ],
+      "predicted_risk_categories": [
+        "changed titles",
+        "changed company/project names"
+      ],
+      "latency_ms": 4.313
+    },
+    {
+      "id": "resume-009",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "medium",
+      "expected_high_risk": true,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed numbers",
+        "inflated impact"
+      ],
+      "predicted_risk_categories": [
+        "changed company/project names"
+      ],
+      "latency_ms": 5.786
+    },
+    {
+      "id": "resume-010",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "medium",
+      "expected_high_risk": true,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed claim"
+      ],
+      "predicted_risk_categories": [
+        "changed company/project names"
+      ],
+      "latency_ms": 6.095
+    },
+    {
+      "id": "readme-001",
+      "mode": "readme",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "removed installation requirements"
+      ],
+      "predicted_risk_categories": [
+        "removed installation requirements"
+      ],
+      "latency_ms": 6.56
+    },
+    {
+      "id": "readme-002",
+      "mode": "readme",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "commercial/pricing restriction"
+      ],
+      "predicted_risk_categories": [
+        "commercial/pricing restriction"
+      ],
+      "latency_ms": 5.528
+    },
+    {
+      "id": "readme-003",
+      "mode": "readme",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed limitation",
+        "unsupported guarantee"
+      ],
+      "predicted_risk_categories": [
+        "removed limitation",
+        "unsupported guarantee"
+      ],
+      "latency_ms": 4.264
+    },
+    {
+      "id": "readme-004",
+      "mode": "readme",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed project scope"
+      ],
+      "predicted_risk_categories": [
+        "changed project scope"
+      ],
+      "latency_ms": 4.469
+    },
+    {
+      "id": "readme-005",
+      "mode": "readme",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "removed limitation"
+      ],
+      "predicted_risk_categories": [
+        "removed limitation"
+      ],
+      "latency_ms": 5.589
+    },
+    {
+      "id": "readme-006",
+      "mode": "readme",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "removed installation requirements"
+      ],
+      "predicted_risk_categories": [
+        "removed installation requirements"
+      ],
+      "latency_ms": 5.078
+    },
+    {
+      "id": "readme-007",
+      "mode": "readme",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "unsupported guarantee"
+      ],
+      "predicted_risk_categories": [
+        "unsupported guarantee"
+      ],
+      "latency_ms": 4.65
+    },
+    {
+      "id": "readme-008",
+      "mode": "readme",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "removed limitation"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 5.088
+    },
+    {
+      "id": "readme-009",
+      "mode": "readme",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed project scope"
+      ],
+      "predicted_risk_categories": [
+        "changed project scope"
+      ],
+      "latency_ms": 4.599
+    },
+    {
+      "id": "readme-010",
+      "mode": "readme",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "unsupported guarantee"
+      ],
+      "predicted_risk_categories": [
+        "removed limitation",
+        "unsupported guarantee"
+      ],
+      "latency_ms": 5.171
+    },
+    {
+      "id": "benign-001",
+      "mode": "default",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.964
+    },
+    {
+      "id": "benign-002",
+      "mode": "policy",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 5.368
+    },
+    {
+      "id": "benign-003",
+      "mode": "prompt",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.549
+    },
+    {
+      "id": "benign-004",
+      "mode": "research",
+      "expected_label": "low",
+      "predicted_label": "low",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.529
+    },
+    {
+      "id": "benign-005",
+      "mode": "resume",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [
+        "changed company/project names"
+      ],
+      "latency_ms": 6.101
+    },
+    {
+      "id": "benign-006",
+      "mode": "readme",
+      "expected_label": "low",
+      "predicted_label": "low",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.661
+    },
+    {
+      "id": "benign-007",
+      "mode": "policy",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.79
+    },
+    {
+      "id": "benign-008",
+      "mode": "prompt",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.443
+    },
+    {
+      "id": "benign-009",
+      "mode": "research",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.436
+    },
+    {
+      "id": "benign-010",
+      "mode": "readme",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.2
+    },
+    {
+      "id": "changelog-001",
+      "mode": "readme",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed installation requirements"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 7.499
+    },
+    {
+      "id": "changelog-002",
+      "mode": "readme",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 6.426
+    },
+    {
+      "id": "apidoc-001",
+      "mode": "readme",
+      "expected_label": "high",
+      "predicted_label": "medium",
+      "expected_high_risk": true,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "unsupported guarantee"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 5.917
+    },
+    {
+      "id": "apidoc-002",
+      "mode": "policy",
+      "expected_label": "medium",
+      "predicted_label": "low",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed numeric claim"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.952
+    },
+    {
+      "id": "contract-001",
+      "mode": "policy",
+      "expected_label": "critical",
+      "predicted_label": "medium",
+      "expected_high_risk": true,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "user rights removal"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 5.819
+    },
+    {
+      "id": "contract-002",
+      "mode": "policy",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "longer retention"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 5.608
+    },
+    {
+      "id": "grant-001",
+      "mode": "research",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "stronger conclusion",
+        "removed uncertainty"
+      ],
+      "predicted_risk_categories": [
+        "stronger conclusion",
+        "removed uncertainty"
+      ],
+      "latency_ms": 5.097
+    },
+    {
+      "id": "grant-002",
+      "mode": "research",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed dataset/baseline"
+      ],
+      "predicted_risk_categories": [
+        "changed dataset/baseline"
+      ],
+      "latency_ms": 5.556
+    },
+    {
+      "id": "handbook-001",
+      "mode": "policy",
+      "expected_label": "high",
+      "predicted_label": "medium",
+      "expected_high_risk": true,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "reduced consent"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 6.107
+    },
+    {
+      "id": "handbook-002",
+      "mode": "policy",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "reduced consent"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 5.488
+    },
+    {
+      "id": "resume-011",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "medium",
+      "expected_high_risk": true,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "inflated impact",
+        "changed numbers"
+      ],
+      "predicted_risk_categories": [
+        "changed company/project names"
+      ],
+      "latency_ms": 4.999
+    },
+    {
+      "id": "resume-012",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "inflated impact",
+        "changed numbers"
+      ],
+      "predicted_risk_categories": [
+        "changed company/project names"
+      ],
+      "latency_ms": 3.81
+    },
+    {
+      "id": "research-011",
+      "mode": "research",
+      "expected_label": "low",
+      "predicted_label": "low",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.662
+    },
+    {
+      "id": "research-012",
+      "mode": "research",
+      "expected_label": "low",
+      "predicted_label": "low",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 4.908
+    },
+    {
+      "id": "prompt-011",
+      "mode": "prompt",
+      "expected_label": "low",
+      "predicted_label": "high",
+      "expected_high_risk": false,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [
+        "changed role/system instruction"
+      ],
+      "latency_ms": 7.679
+    },
+    {
+      "id": "prompt-012",
+      "mode": "prompt",
+      "expected_label": "critical",
+      "predicted_label": "medium",
+      "expected_high_risk": true,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "removed safety rule"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 6.298
+    },
+    {
+      "id": "policy-011",
+      "mode": "policy",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 6.61
+    },
+    {
+      "id": "policy-012",
+      "mode": "policy",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "sensitive data expansion",
+        "expanded tracking"
+      ],
+      "predicted_risk_categories": [
+        "sensitive data expansion"
+      ],
+      "latency_ms": 5.978
+    },
+    {
+      "id": "readme-011",
+      "mode": "readme",
+      "expected_label": "medium",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "changed project scope"
+      ],
+      "predicted_risk_categories": [
+        "changed project scope"
+      ],
+      "latency_ms": 5.939
+    },
+    {
+      "id": "readme-012",
+      "mode": "readme",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "unsupported guarantee"
+      ],
+      "predicted_risk_categories": [
+        "removed limitation",
+        "unsupported guarantee"
+      ],
+      "latency_ms": 5.296
+    },
+    {
+      "id": "benign-011",
+      "mode": "default",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 6.25
+    },
+    {
+      "id": "benign-012",
+      "mode": "policy",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 6.916
+    },
+    {
+      "id": "benign-013",
+      "mode": "prompt",
+      "expected_label": "low",
+      "predicted_label": "low",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 8.277
+    },
+    {
+      "id": "benign-014",
+      "mode": "research",
+      "expected_label": "low",
+      "predicted_label": "medium",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 5.952
+    }
+  ]
+}

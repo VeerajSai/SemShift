@@ -1,38 +1,70 @@
 # Contributing
 
-Thanks for helping make SemShift sharper.
+Thanks for helping SemShift become a trustworthy open-source review tool.
 
-SemShift works best when its heuristics are transparent, testable, and grounded in real review workflows. A good contribution usually does one of these:
-
-- adds a realistic example where word diff misses meaning drift
-- improves chunking or matching while preserving explainability
-- adds a mode-specific risk heuristic with tests
-- improves CLI, markdown, or GitHub Action UX
-- reduces noisy false positives
-
-## Development Setup
+## Setup
 
 ```bash
 python -m pip install -e ".[dev]"
-pytest
-ruff check .
 ```
 
-## Pull Request Guidelines
+Optional local embedding models:
 
-- Keep changes focused.
-- Add or update tests for behavior changes.
-- Prefer transparent heuristics over opaque magic.
-- Avoid paid API requirements for default workflows.
-- Include before/after examples when changing reports or CLI output.
+```bash
+python -m pip install -e ".[dev-models]"
+```
 
-## Heuristic Guidelines
+## Tests And Quality
 
-Good SemShift flags should answer:
+```bash
+ruff check .
+ruff format --check .
+pytest
+```
 
-- What changed?
-- Why might it matter?
-- Which human reviewer should look at it?
+Run coverage when changing shared behavior:
 
-Avoid adding broad keyword rules that create noisy output without a clear review action.
+```bash
+pytest --cov=semshift
+```
 
+## Benchmark Eval
+
+The starter benchmark is self-evaluation only.
+
+```bash
+python scripts/evaluate_benchmark.py benchmarks/semshift_bench_v1.jsonl
+python scripts/run_baselines.py benchmarks/semshift_bench_v1.jsonl
+```
+
+Do not market starter benchmark numbers as external validation.
+
+## Adding Or Updating A Mode
+
+1. Update `semshift/core/modes.py`.
+2. Add conservative risk rules in `semshift/core/risk_analyzer.py`.
+3. Add tests for true positives and benign paraphrases.
+4. Add benchmark examples with notes.
+5. Document mode maturity as stable or experimental.
+
+See `docs/adding-a-mode.md`.
+
+## Coding Standards
+
+- Keep new Python code fully typed.
+- Prefer existing project patterns over new abstractions.
+- Use Rich console output in CLI-facing code.
+- Do not add bare `print()` calls to CLI paths.
+- Keep TF-IDF wording honest: lexical backend, not a true semantic model.
+- Use `drift_label` as the canonical severity field.
+
+## Security-Sensitive Changes
+
+For path handling, shell execution, model loading, PR comments, or report rendering:
+
+- avoid `shell=True`
+- treat file names as data
+- constrain action paths to the repo root
+- escape untrusted Markdown/HTML
+- add tests for unusual paths and long output
+- document any remaining risk

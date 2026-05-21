@@ -1,0 +1,1112 @@
+{
+  "lexical_diff_size": {
+    "accuracy": 0.3333,
+    "high_risk": {
+      "precision": 0.6,
+      "recall": 0.4412,
+      "f1": 0.5085
+    },
+    "examples": [
+      {
+        "id": "policy-001",
+        "mode": "policy",
+        "expected_label": "critical",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "policy-002",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "low"
+      },
+      {
+        "id": "policy-003",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "policy-004",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "policy-005",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "policy-006",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "policy-007",
+        "mode": "policy",
+        "expected_label": "critical",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-008",
+        "mode": "policy",
+        "expected_label": "critical",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "policy-009",
+        "mode": "policy",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "policy-010",
+        "mode": "policy",
+        "expected_label": "medium",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "prompt-001",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "high"
+      },
+      {
+        "id": "prompt-002",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "prompt-003",
+        "mode": "prompt",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "prompt-004",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "prompt-005",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "high"
+      },
+      {
+        "id": "prompt-006",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "prompt-007",
+        "mode": "prompt",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "prompt-008",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "prompt-009",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "prompt-010",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "research-001",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "research-002",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "low"
+      },
+      {
+        "id": "research-003",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "low"
+      },
+      {
+        "id": "research-004",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "low"
+      },
+      {
+        "id": "research-005",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "research-006",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "research-007",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "low"
+      },
+      {
+        "id": "research-008",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "research-009",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "low"
+      },
+      {
+        "id": "research-010",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "resume-001",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "low"
+      },
+      {
+        "id": "resume-002",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "low"
+      },
+      {
+        "id": "resume-003",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "low"
+      },
+      {
+        "id": "resume-004",
+        "mode": "resume",
+        "expected_label": "medium",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "resume-005",
+        "mode": "resume",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "resume-006",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "resume-007",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "resume-008",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "low"
+      },
+      {
+        "id": "resume-009",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "resume-010",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-001",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-002",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "readme-003",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-004",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "readme-005",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-006",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-007",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-008",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-009",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-010",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "benign-001",
+        "mode": "default",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-002",
+        "mode": "policy",
+        "expected_label": "low",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "benign-003",
+        "mode": "prompt",
+        "expected_label": "low",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "benign-004",
+        "mode": "research",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-005",
+        "mode": "resume",
+        "expected_label": "low",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "benign-006",
+        "mode": "readme",
+        "expected_label": "low",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "benign-007",
+        "mode": "policy",
+        "expected_label": "low",
+        "predicted_label": "high"
+      },
+      {
+        "id": "benign-008",
+        "mode": "prompt",
+        "expected_label": "low",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "benign-009",
+        "mode": "research",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-010",
+        "mode": "readme",
+        "expected_label": "low",
+        "predicted_label": "low"
+      }
+    ]
+  },
+  "tfidf_cosine_only": {
+    "accuracy": 0.15,
+    "high_risk": {
+      "precision": 0.54,
+      "recall": 0.7941,
+      "f1": 0.6429
+    },
+    "examples": [
+      {
+        "id": "policy-001",
+        "mode": "policy",
+        "expected_label": "critical",
+        "predicted_label": "high"
+      },
+      {
+        "id": "policy-002",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "policy-003",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-004",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-005",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-006",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-007",
+        "mode": "policy",
+        "expected_label": "critical",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-008",
+        "mode": "policy",
+        "expected_label": "critical",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-009",
+        "mode": "policy",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-010",
+        "mode": "policy",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-001",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-002",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-003",
+        "mode": "prompt",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-004",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-005",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-006",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-007",
+        "mode": "prompt",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "prompt-008",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "prompt-009",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-010",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "research-001",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "research-002",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "research-003",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "research-004",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "research-005",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "research-006",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "research-007",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "research-008",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "research-009",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "research-010",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "resume-001",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "resume-002",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "resume-003",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "resume-004",
+        "mode": "resume",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "resume-005",
+        "mode": "resume",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "resume-006",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "resume-007",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "resume-008",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "resume-009",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "resume-010",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-001",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-002",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-003",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-004",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-005",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-006",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-007",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-008",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-009",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-010",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "benign-001",
+        "mode": "default",
+        "expected_label": "low",
+        "predicted_label": "high"
+      },
+      {
+        "id": "benign-002",
+        "mode": "policy",
+        "expected_label": "low",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "benign-003",
+        "mode": "prompt",
+        "expected_label": "low",
+        "predicted_label": "high"
+      },
+      {
+        "id": "benign-004",
+        "mode": "research",
+        "expected_label": "low",
+        "predicted_label": "medium"
+      },
+      {
+        "id": "benign-005",
+        "mode": "resume",
+        "expected_label": "low",
+        "predicted_label": "high"
+      },
+      {
+        "id": "benign-006",
+        "mode": "readme",
+        "expected_label": "low",
+        "predicted_label": "high"
+      },
+      {
+        "id": "benign-007",
+        "mode": "policy",
+        "expected_label": "low",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "benign-008",
+        "mode": "prompt",
+        "expected_label": "low",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "benign-009",
+        "mode": "research",
+        "expected_label": "low",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "benign-010",
+        "mode": "readme",
+        "expected_label": "low",
+        "predicted_label": "high"
+      }
+    ]
+  },
+  "heuristic_only": {
+    "accuracy": 0.2833,
+    "high_risk": {
+      "precision": 0.6829,
+      "recall": 0.8235,
+      "f1": 0.7467
+    },
+    "examples": [
+      {
+        "id": "policy-001",
+        "mode": "policy",
+        "expected_label": "critical",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-002",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-003",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-004",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-005",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-006",
+        "mode": "policy",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-007",
+        "mode": "policy",
+        "expected_label": "critical",
+        "predicted_label": "low"
+      },
+      {
+        "id": "policy-008",
+        "mode": "policy",
+        "expected_label": "critical",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "policy-009",
+        "mode": "policy",
+        "expected_label": "medium",
+        "predicted_label": "low"
+      },
+      {
+        "id": "policy-010",
+        "mode": "policy",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "prompt-001",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-002",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-003",
+        "mode": "prompt",
+        "expected_label": "medium",
+        "predicted_label": "low"
+      },
+      {
+        "id": "prompt-004",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-005",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "low"
+      },
+      {
+        "id": "prompt-006",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "low"
+      },
+      {
+        "id": "prompt-007",
+        "mode": "prompt",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "prompt-008",
+        "mode": "prompt",
+        "expected_label": "critical",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-009",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "prompt-010",
+        "mode": "prompt",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "research-001",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "research-002",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "research-003",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "research-004",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "research-005",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "research-006",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "low"
+      },
+      {
+        "id": "research-007",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "research-008",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "research-009",
+        "mode": "research",
+        "expected_label": "medium",
+        "predicted_label": "low"
+      },
+      {
+        "id": "research-010",
+        "mode": "research",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "resume-001",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "resume-002",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "resume-003",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "resume-004",
+        "mode": "resume",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "resume-005",
+        "mode": "resume",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "resume-006",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "resume-007",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "low"
+      },
+      {
+        "id": "resume-008",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "resume-009",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "resume-010",
+        "mode": "resume",
+        "expected_label": "high",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-001",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-002",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-003",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "readme-004",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-005",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-006",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-007",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "low"
+      },
+      {
+        "id": "readme-008",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "low"
+      },
+      {
+        "id": "readme-009",
+        "mode": "readme",
+        "expected_label": "medium",
+        "predicted_label": "high"
+      },
+      {
+        "id": "readme-010",
+        "mode": "readme",
+        "expected_label": "high",
+        "predicted_label": "critical"
+      },
+      {
+        "id": "benign-001",
+        "mode": "default",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-002",
+        "mode": "policy",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-003",
+        "mode": "prompt",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-004",
+        "mode": "research",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-005",
+        "mode": "resume",
+        "expected_label": "low",
+        "predicted_label": "high"
+      },
+      {
+        "id": "benign-006",
+        "mode": "readme",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-007",
+        "mode": "policy",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-008",
+        "mode": "prompt",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-009",
+        "mode": "research",
+        "expected_label": "low",
+        "predicted_label": "low"
+      },
+      {
+        "id": "benign-010",
+        "mode": "readme",
+        "expected_label": "low",
+        "predicted_label": "low"
+      }
+    ]
+  }
+}

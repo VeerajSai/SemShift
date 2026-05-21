@@ -1,0 +1,38 @@
+name: Missed drift
+description: Report a risky meaning change SemShift missed.
+title: "[Missed drift]: "
+labels: ["missed-drift"]
+body:
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - default
+        - policy
+        - prompt
+        - readme
+        - research
+        - resume
+    validations:
+      required: true
+  - type: textarea
+    id: old
+    attributes:
+      label: Old text
+      description: Remove sensitive information before posting.
+    validations:
+      required: true
+  - type: textarea
+    id: new
+    attributes:
+      label: New text
+      description: Remove sensitive information before posting.
+    validations:
+      required: true
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk SemShift missed
+    validations:
+      required: true

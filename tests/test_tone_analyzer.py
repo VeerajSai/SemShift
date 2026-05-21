@@ -5,7 +5,9 @@ from semshift.core.tone_analyzer import ToneShift, analyze_tone, compare_tone
 
 class TestAnalyzeTone:
     def test_cautious_text_labeled_cautious(self):
-        profile = analyze_tone("The model may produce approximate results. It might not generalize.")
+        profile = analyze_tone(
+            "The model may produce approximate results. It might not generalize."
+        )
         assert profile.label == "cautious"
 
     def test_confident_text_labeled_confident(self):
@@ -17,7 +19,9 @@ class TestAnalyzeTone:
         assert profile.label == "promotional"
 
     def test_restrictive_text_labeled_restrictive(self):
-        profile = analyze_tone("Users must not share data. Sharing is prohibited and mandatory consent required.")
+        profile = analyze_tone(
+            "Users must not share data. Sharing is prohibited and mandatory consent required."
+        )
         assert profile.label == "restrictive"
 
     def test_empty_text_returns_neutral(self):
@@ -25,7 +29,9 @@ class TestAnalyzeTone:
         assert profile.label == "neutral"
 
     def test_technical_text_labeled_technical(self):
-        profile = analyze_tone("The API uses a JSON dataset model with Python embeddings and cli accuracy.")
+        profile = analyze_tone(
+            "The API uses a JSON dataset model with Python embeddings and cli accuracy."
+        )
         assert profile.label in ("technical", "cautious", "neutral")
 
     def test_scores_are_clamped_between_zero_and_one(self):
@@ -85,3 +91,37 @@ class TestCompareTone:
         )
         low = compare_tone("Some text here.", "Some text here.")
         assert high.score >= low.score
+
+
+def test_short_text_score_does_not_over_inflate() -> None:
+    from semshift.core.tone_analyzer import analyze_tone
+
+    profile = analyze_tone("This will work.")
+    assert max(profile.scores.values()) <= 0.5, f"Short text inflated scores: {profile.scores}"
+
+
+def test_guarantee_not_in_risky_keywords() -> None:
+    from semshift.core.tone_analyzer import RISKY
+
+    assert "guarantee" not in RISKY
+
+
+def test_best_not_in_confident_keywords() -> None:
+    from semshift.core.tone_analyzer import CONFIDENT
+
+    assert "best" not in CONFIDENT
+
+
+def test_disclaimer_in_restrictive_keywords() -> None:
+    from semshift.core.tone_analyzer import RESTRICTIVE
+
+    assert "disclaimer" in RESTRICTIVE
+
+
+def test_mixed_tone_scores_within_range() -> None:
+    from semshift.core.tone_analyzer import analyze_tone
+
+    text = "Results may improve, but we will guarantee accurate outputs in most cases."
+    profile = analyze_tone(text)
+    for key, score in profile.scores.items():
+        assert 0.0 <= score <= 1.0, f"Score {key}={score} out of range"

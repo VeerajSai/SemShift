@@ -57,6 +57,7 @@ def _chunk_markdown(text: str, path: str | None, max_chars: int) -> list[TextChu
     heading: str | None = None
     block_lines: list[str] = []
     block_start = 1
+    in_code_block = False
 
     def flush(end_line: int) -> None:
         nonlocal block_lines, block_start
@@ -75,17 +76,21 @@ def _chunk_markdown(text: str, path: str | None, max_chars: int) -> list[TextChu
         block_lines = []
 
     for index, line in enumerate(lines, start=1):
-        heading_match = HEADING_RE.match(line.strip())
-        if heading_match:
-            flush(index - 1)
-            heading = normalize_whitespace(heading_match.group(2))
-            block_start = index + 1
-            continue
+        if line.strip().startswith("```"):
+            in_code_block = not in_code_block
 
-        if not line.strip():
-            flush(index - 1)
-            block_start = index + 1
-            continue
+        if not in_code_block:
+            heading_match = HEADING_RE.match(line.strip())
+            if heading_match:
+                flush(index - 1)
+                heading = normalize_whitespace(heading_match.group(2))
+                block_start = index + 1
+                continue
+
+            if not line.strip():
+                flush(index - 1)
+                block_start = index + 1
+                continue
 
         if not block_lines:
             block_start = index
@@ -158,29 +163,36 @@ def _append_block_chunks(
         chunks.append(_make_chunk(len(chunks) + 1, normalized, heading, start_line, end_line, path))
         return
 
+    total_chars = max(1, len(normalized))
+    line_span = max(0, end_line - start_line)
     current: list[str] = []
     current_len = 0
+    char_offset = 0
     for sentence in sentences:
         next_len = current_len + len(sentence) + 1
         if current and next_len > max_chars:
+            sub_start = start_line + round(char_offset / total_chars * line_span)
+            sub_end = start_line + round((char_offset + current_len) / total_chars * line_span)
             chunks.append(
                 _make_chunk(
                     len(chunks) + 1,
                     " ".join(current),
                     heading,
-                    start_line,
-                    end_line,
+                    sub_start,
+                    sub_end,
                     path,
                 )
             )
+            char_offset += current_len + 1
             current = []
             current_len = 0
         current.append(sentence)
         current_len += len(sentence) + 1
 
     if current:
+        sub_start = start_line + round(char_offset / total_chars * line_span)
         chunks.append(
-            _make_chunk(len(chunks) + 1, " ".join(current), heading, start_line, end_line, path)
+            _make_chunk(len(chunks) + 1, " ".join(current), heading, sub_start, end_line, path)
         )
 
 

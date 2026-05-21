@@ -42,9 +42,18 @@ def test_result_to_json_has_all_required_keys() -> None:
     result = compare_text(old="old", new="new", model="tfidf")
     payload = json.loads(result_to_json(result))
     required = {
-        "files", "mode", "scores", "drift_label", "summary",
-        "chunk_matches", "claim_changes", "tone_shift", "risk_flags",
-        "recommendations", "embedding_backend", "warnings",
+        "files",
+        "mode",
+        "scores",
+        "drift_label",
+        "summary",
+        "chunk_matches",
+        "claim_changes",
+        "tone_shift",
+        "risk_flags",
+        "recommendations",
+        "embedding_backend",
+        "warnings",
     }
     assert required.issubset(set(payload.keys()))
 
@@ -59,7 +68,7 @@ def test_result_to_json_drift_label_is_string() -> None:
 def test_print_rich_report_does_not_raise() -> None:
     result = compare_text(
         old="We do not share personal data.",
-        new="We may share personal data with partners.",
+        new="We may share personal data with partners. We retain logs for 180 days.",
         mode="policy",
         model="tfidf",
     )
@@ -148,3 +157,43 @@ def test_result_to_json_score_is_float() -> None:
     result = compare_text(old="a", new="b", model="tfidf")
     payload = json.loads(result_to_json(result))
     assert isinstance(payload["scores"]["overall_semantic_drift"], float)
+
+
+def test_result_to_markdown_includes_canonical_fields() -> None:
+    result = compare_text(
+        old="We do not share personal data.",
+        new="We may share personal data with partners. We retain logs for 180 days.",
+        mode="policy",
+        model="tfidf",
+    )
+
+    report = result.to_markdown()
+
+    assert "# SemShift Report" in report
+    assert "Overall drift score" in report
+    assert result.drift_label.upper() in report
+    assert "## Risk Flags" in report
+    assert "## Claim Signals" in report
+
+
+def test_markdown_report_escapes_untrusted_html() -> None:
+    result = compare_text(
+        old="<script>alert(1)</script>",
+        new="<img src=x onerror=alert(2)>",
+        model="tfidf",
+    )
+
+    report = result.to_markdown()
+
+    assert "<script>" not in report
+    assert "&lt;script&gt;" in report
+
+
+def test_compare_text_max_chunks_truncates_with_warning() -> None:
+    old = "\n\n".join(f"old paragraph {index}" for index in range(5))
+    new = "\n\n".join(f"new paragraph {index}" for index in range(5))
+
+    result = compare_text(old=old, new=new, model="tfidf", max_chunks=2)
+
+    assert len(result.chunk_matches) <= 4
+    assert any("--max-chunks" in warning for warning in result.warnings)

@@ -1,0 +1,38 @@
+name: False positive
+description: Report a harmless change SemShift flagged too strongly.
+title: "[False positive]: "
+labels: ["false-positive"]
+body:
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - default
+        - policy
+        - prompt
+        - readme
+        - research
+        - resume
+    validations:
+      required: true
+  - type: textarea
+    id: old
+    attributes:
+      label: Old text
+      description: Remove sensitive information before posting.
+    validations:
+      required: true
+  - type: textarea
+    id: new
+    attributes:
+      label: New text
+      description: Remove sensitive information before posting.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this is benign
+    validations:
+      required: true

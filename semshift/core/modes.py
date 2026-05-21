@@ -107,4 +107,3 @@ def get_mode(name: str) -> ModeConfig:
 def list_modes() -> list[str]:
     """List supported mode names."""
     return sorted(MODES)
-

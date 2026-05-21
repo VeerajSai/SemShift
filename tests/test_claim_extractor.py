@@ -66,7 +66,9 @@ def test_extract_claims_detects_strong_phrases() -> None:
 
 
 def test_extract_claims_detects_policy_terms() -> None:
-    claims = extract_claims("We collect personal data and require consent. Third parties may track you.")
+    claims = extract_claims(
+        "We collect personal data and require consent. Third parties may track you."
+    )
     terms = {term.normalized() for term in claims.policy_terms}
     assert "personal data" in terms
     assert "consent" in terms
@@ -162,3 +164,40 @@ def test_extract_claims_metric_with_nearby_number_included() -> None:
     claims = extract_claims("The system latency is 5ms.")
     metric_values = [term.value.lower() for term in claims.metrics]
     assert "latency" in metric_values
+
+
+def test_version_number_not_extracted() -> None:
+    claims = extract_claims("Requires Python 3.10 or newer.")
+    number_values = [term.value for term in claims.numbers]
+    assert not any("3.10" in v for v in number_values), (
+        f"Version number should be filtered: {number_values}"
+    )
+
+
+def test_negated_guarantee_not_extracted_as_strong_phrase() -> None:
+    claims = extract_claims("We do not guarantee results.")
+    strong_values = [term.value.lower() for term in claims.strong_phrases]
+    assert "guarantee" not in strong_values
+
+
+def test_would_modal_recognized() -> None:
+    from semshift.core.claim_extractor import MODAL_STRENGTH
+
+    assert "would" in MODAL_STRENGTH
+    assert MODAL_STRENGTH["would"] == 2
+
+
+def test_modal_softening_would_to_may() -> None:
+    diff = compare_claims(
+        "This would improve performance.",
+        "This may improve performance.",
+    )
+    assert diff.softened_claims
+
+
+def test_number_threshold_requires_context_similarity() -> None:
+    diff = compare_claims(
+        "Outdoor humidity reading today: 72.",
+        "Annual revenue target for next fiscal year: $45,000,000.",
+    )
+    assert not diff.modified_numbers

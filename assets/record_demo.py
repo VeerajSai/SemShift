@@ -25,7 +25,9 @@ from semshift.core.report import print_rich_report
 def main() -> None:
     console = Console()
 
-    console.print("\n[bold cyan]$ semshift compare examples/old_policy.md examples/new_policy.md --mode policy[/bold cyan]\n")
+    console.print(
+        "\n[bold cyan]$ semshift compare examples/old_policy.md examples/new_policy.md --mode policy[/bold cyan]\n"
+    )
     time.sleep(0.5)
 
     result = compare_text(

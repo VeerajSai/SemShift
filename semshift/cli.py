@@ -9,17 +9,22 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from semshift import __version__
 from semshift.core.embeddings import DEFAULT_MODEL
-from semshift.core.loader import FileLoadError
+from semshift.core.loader import DEFAULT_MAX_FILE_SIZE, FileLoadError
 from semshift.core.modes import MODES, list_modes
 from semshift.core.report import print_rich_report, result_to_json, write_markdown_report
+from semshift.core.semantic_diff import DEFAULT_MAX_CHUNKS
 from semshift.core.semantic_diff import compare_files as compare_files_api
 from semshift.core.semantic_diff import compare_text as compare_text_api
 from semshift.utils.scoring import label_meets
 
 app = typer.Typer(
     name="semshift",
-    help="Git diff for meaning. Detect semantic drift, claim changes, tone shifts, and risk shifts.",
+    help=(
+        "Local-first semantic review assistant. Flags likely drift, claim changes, "
+        "tone shifts, and risk changes."
+    ),
     no_args_is_help=True,
 )
 console = Console()
@@ -40,7 +45,10 @@ ModelOption = Annotated[
     str,
     typer.Option(
         "--model",
-        help="SentenceTransformers model name. Use 'tfidf' for deterministic local fallback.",
+        help=(
+            "Backend name. Use 'tfidf' or 'lexical' for the deterministic lexical backend, "
+            "or install semshift[models] for optional SentenceTransformers embeddings."
+        ),
     ),
 ]
 JsonOption = Annotated[bool, typer.Option("--json", help="Print machine-readable JSON.")]
@@ -61,6 +69,43 @@ TopOption = Annotated[
         help="Number of top meaning changes to show in terminal and markdown reports.",
     ),
 ]
+MaxFileSizeOption = Annotated[
+    int,
+    typer.Option(
+        "--max-file-size",
+        min=1,
+        help="Maximum bytes to read from each file before truncating with a warning.",
+    ),
+]
+MaxChunksOption = Annotated[
+    int,
+    typer.Option(
+        "--max-chunks",
+        min=1,
+        help="Maximum chunks to compare per side before truncating with a warning.",
+    ),
+]
+VersionOption = Annotated[
+    bool | None,
+    typer.Option(
+        "--version",
+        callback=lambda value: _show_version(value),
+        help="Show the SemShift version and exit.",
+        is_eager=True,
+    ),
+]
+
+
+def _show_version(value: bool | None) -> None:
+    if value:
+        typer.echo(f"semshift {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def root(version: VersionOption = None) -> None:
+    """Configure global CLI options."""
+    _ = version
 
 
 @app.command()
@@ -73,10 +118,19 @@ def compare(
     fail_on: FailOnOption = None,
     report: ReportOption = None,
     top: TopOption = 5,
+    max_file_size: MaxFileSizeOption = DEFAULT_MAX_FILE_SIZE,
+    max_chunks: MaxChunksOption = DEFAULT_MAX_CHUNKS,
 ) -> None:
     """Compare two files for meaning-level drift."""
     try:
-        result = compare_files_api(old, new, mode=mode, model=model)
+        result = compare_files_api(
+            old,
+            new,
+            mode=mode,
+            model=model,
+            max_file_size=max_file_size,
+            max_chunks=max_chunks,
+        )
     except (FileLoadError, OSError, ValueError) as exc:
         _exit_with_error(str(exc))
 
@@ -103,10 +157,11 @@ def compare_text(
     fail_on: FailOnOption = None,
     report: ReportOption = None,
     top: TopOption = 5,
+    max_chunks: MaxChunksOption = DEFAULT_MAX_CHUNKS,
 ) -> None:
     """Compare two raw strings for meaning-level drift."""
     try:
-        result = compare_text_api(old=old, new=new, mode=mode, model=model)
+        result = compare_text_api(old=old, new=new, mode=mode, model=model, max_chunks=max_chunks)
     except ValueError as exc:
         _exit_with_error(str(exc))
 

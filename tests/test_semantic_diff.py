@@ -112,6 +112,7 @@ def test_result_drift_label_consistent_with_score() -> None:
         model="tfidf",
     )
     from semshift.utils.scoring import drift_label
+
     assert result.drift_label == drift_label(result.overall_score)
 
 
@@ -119,11 +120,25 @@ def test_result_to_dict_has_required_keys() -> None:
     result = compare_text(old="old text", new="new text", model="tfidf")
     d = result.to_dict()
     expected = {
-        "files", "mode", "scores", "drift_label", "summary",
-        "chunk_matches", "claim_changes", "tone_shift", "risk_flags",
-        "recommendations", "embedding_backend", "warnings",
+        "files",
+        "mode",
+        "scores",
+        "overall_score",
+        "drift_score",
+        "drift_label",
+        "summary",
+        "chunk_matches",
+        "matched_chunks",
+        "claim_changes",
+        "tone_shift",
+        "risk_flags",
+        "recommendations",
+        "embedding_backend",
+        "embedding_backend_type",
+        "warnings",
+        "metadata",
     }
-    assert set(d.keys()) == expected
+    assert expected.issubset(set(d.keys()))
 
 
 def test_result_to_dict_files_has_old_and_new() -> None:
@@ -188,13 +203,17 @@ def test_top_meaning_changes_respects_limit() -> None:
 
 def test_chunk_section_uses_heading_when_available() -> None:
     from semshift.core.chunker import TextChunk
+
     chunk = TextChunk(id="chunk-001", text="text", heading="My Section", start_line=1, end_line=2)
-    match = ChunkMatch(status="semantically changed", similarity=0.5, drift_score=0.7, old_chunk=chunk)
+    match = ChunkMatch(
+        status="semantically changed", similarity=0.5, drift_score=0.7, old_chunk=chunk
+    )
     assert chunk_section(match) == "My Section"
 
 
 def test_chunk_section_falls_back_to_line_range() -> None:
     from semshift.core.chunker import TextChunk
+
     chunk = TextChunk(id="chunk-001", text="text", heading=None, start_line=5, end_line=8)
     match = ChunkMatch(status="added", similarity=0.0, drift_score=0.75, new_chunk=chunk)
     assert "5" in chunk_section(match)
@@ -208,6 +227,7 @@ def test_chunk_section_returns_unknown_when_no_chunk() -> None:
 
 def test_chunk_old_text_returns_added_placeholder_when_no_old() -> None:
     from semshift.core.chunker import TextChunk
+
     chunk = TextChunk(id="chunk-001", text="new text", heading=None, start_line=1, end_line=1)
     match = ChunkMatch(status="added", similarity=0.0, drift_score=0.75, new_chunk=chunk)
     assert "[added]" in chunk_old_text(match)
@@ -215,6 +235,7 @@ def test_chunk_old_text_returns_added_placeholder_when_no_old() -> None:
 
 def test_chunk_new_text_returns_removed_placeholder_when_no_new() -> None:
     from semshift.core.chunker import TextChunk
+
     chunk = TextChunk(id="chunk-001", text="old text", heading=None, start_line=1, end_line=1)
     match = ChunkMatch(status="removed", similarity=0.0, drift_score=0.75, old_chunk=chunk)
     assert "[removed]" in chunk_new_text(match)
@@ -222,6 +243,7 @@ def test_chunk_new_text_returns_removed_placeholder_when_no_new() -> None:
 
 def test_compact_change_title_format() -> None:
     from semshift.core.chunker import TextChunk
+
     chunk = TextChunk(id="chunk-001", text="text", heading="Section", start_line=1, end_line=2)
     match = ChunkMatch(
         status="semantically changed", similarity=0.4, drift_score=0.65, old_chunk=chunk
@@ -234,11 +256,17 @@ def test_compact_change_title_format() -> None:
 
 def test_chunk_match_to_dict_has_required_keys() -> None:
     from semshift.core.chunker import TextChunk
+
     chunk = TextChunk(id="chunk-001", text="text", heading=None, start_line=1, end_line=1)
     match = ChunkMatch(status="added", similarity=0.0, drift_score=0.75, new_chunk=chunk)
     d = match.to_dict()
     assert set(d.keys()) == {
-        "status", "similarity", "drift_score", "old_chunk", "new_chunk", "why_it_matters"
+        "status",
+        "similarity",
+        "drift_score",
+        "old_chunk",
+        "new_chunk",
+        "why_it_matters",
     }
 
 

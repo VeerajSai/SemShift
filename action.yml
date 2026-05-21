@@ -1,6 +1,10 @@
 name: "SemShift Check"
-description: "Detect semantic shifts, claim changes, tone drift, and risk changes in pull requests."
-author: "SemShift contributors"
+description: "Local-first semantic review assistant that flags likely risky meaning changes in pull requests."
+author: "Veeraj Sai"
+
+branding:
+  icon: "git-pull-request"
+  color: "blue"
 
 inputs:
   files:
@@ -12,11 +16,11 @@ inputs:
     required: false
     default: "default"
   fail_on:
-    description: "Fail the action when drift reaches this label: low, medium, high, critical."
+    description: "Fail the action when drift reaches this label: low, medium, high, critical. Default: high."
     required: false
     default: "high"
   model:
-    description: "Embedding backend. The action defaults to 'tfidf' for fast CI; pass a SentenceTransformers model for deeper local embeddings."
+    description: "Backend. Defaults to the lexical TF-IDF backend; pass an optional SentenceTransformers model for local semantic embeddings."
     required: false
     default: "tfidf"
   report:
@@ -35,6 +39,14 @@ inputs:
     description: "GitHub token used for PR comments. Defaults to github.token when pr_comment is true."
     required: false
     default: ""
+  max_file_size:
+    description: "Maximum bytes to read per file before truncating with a warning."
+    required: false
+    default: "5242880"
+  max_chunks:
+    description: "Maximum chunks to compare per side before truncating with a warning."
+    required: false
+    default: "2000"
 
 outputs:
   report_path:
@@ -54,29 +66,43 @@ runs:
 
     - name: Install SemShift
       shell: bash
+      env:
+        SEMSHIFT_ACTION_PATH: ${{ github.action_path }}
+        SEMSHIFT_MODEL: ${{ inputs.model }}
       run: |
-        if [ "${{ inputs.model }}" = "tfidf" ]; then
-          python -m pip install "numpy>=1.24" "rich>=13.7" "scikit-learn>=1.3" "typer>=0.12"
-          python -m pip install --no-deps "${{ github.action_path }}"
+        if [ "$SEMSHIFT_MODEL" = "tfidf" ] || [ "$SEMSHIFT_MODEL" = "lexical" ]; then
+          python -m pip install "numpy>=1.24,<3" "rich>=13.7,<15" "scikit-learn>=1.3,<2" "typer>=0.12,<1"
+          python -m pip install --no-deps "$SEMSHIFT_ACTION_PATH"
         else
-          python -m pip install "${{ github.action_path }}[models]"
+          python -m pip install "$SEMSHIFT_ACTION_PATH[models]"
         fi
 
     - name: Run SemShift
       id: semshift
       shell: bash
-      run: >
-        python -m semshift.integrations.github_action
-        --files "${{ inputs.files }}"
-        --mode "${{ inputs.mode }}"
-        --fail-on "${{ inputs.fail_on }}"
-        --model "${{ inputs.model }}"
-        --report "${{ inputs.report }}"
-        --base-ref "${{ inputs.base_ref }}"
-        --pr-comment "${{ inputs.pr_comment }}"
-        --github-token "$SEMSHIFT_GITHUB_TOKEN"
       env:
-        SEMSHIFT_GITHUB_TOKEN: ${{ inputs.github_token || github.token }}
+        SEMSHIFT_BASE_REF: ${{ inputs.base_ref }}
+        SEMSHIFT_FILES: ${{ inputs.files }}
+        SEMSHIFT_MODE: ${{ inputs.mode }}
+        SEMSHIFT_FAIL_ON: ${{ inputs.fail_on }}
+        SEMSHIFT_MODEL: ${{ inputs.model }}
+        SEMSHIFT_REPORT: ${{ inputs.report }}
+        SEMSHIFT_PR_COMMENT: ${{ inputs.pr_comment }}
+        SEMSHIFT_MAX_FILE_SIZE: ${{ inputs.max_file_size }}
+        SEMSHIFT_MAX_CHUNKS: ${{ inputs.max_chunks }}
+        GITHUB_TOKEN: ${{ inputs.github_token || github.token }}
+      run: |
+        python -m semshift.integrations.github_action \
+          --files "$SEMSHIFT_FILES" \
+          --mode "$SEMSHIFT_MODE" \
+          --fail-on "$SEMSHIFT_FAIL_ON" \
+          --model "$SEMSHIFT_MODEL" \
+          --report "$SEMSHIFT_REPORT" \
+          --base-ref "$SEMSHIFT_BASE_REF" \
+          --pr-comment "$SEMSHIFT_PR_COMMENT" \
+          --github-token "$GITHUB_TOKEN" \
+          --max-file-size "$SEMSHIFT_MAX_FILE_SIZE" \
+          --max-chunks "$SEMSHIFT_MAX_CHUNKS"
 
     - name: Upload SemShift report
       uses: actions/upload-artifact@v4

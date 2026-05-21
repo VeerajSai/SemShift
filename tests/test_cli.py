@@ -5,6 +5,7 @@ from inspect import signature
 
 from typer.testing import CliRunner
 
+from semshift import __version__
 from semshift.cli import app
 
 
@@ -16,6 +17,13 @@ def _cli_runner() -> CliRunner:
 
 
 runner = _cli_runner()
+
+
+def test_cli_version() -> None:
+    result = runner.invoke(app, ["--version"])
+
+    assert result.exit_code == 0
+    assert result.stdout.strip() == f"semshift {__version__}"
 
 
 def test_cli_compare_json(tmp_path) -> None:
@@ -188,11 +196,108 @@ def test_cli_report_and_json_can_coexist(tmp_path) -> None:
     result = runner.invoke(
         app,
         [
-            "compare", str(old), str(new),
-            "--json", "--report", str(report),
-            "--model", "tfidf",
+            "compare",
+            str(old),
+            str(new),
+            "--json",
+            "--report",
+            str(report),
+            "--model",
+            "tfidf",
         ],
     )
     assert result.exit_code == 0
     assert json.loads(result.stdout)
     assert report.exists()
+
+
+def test_cli_help() -> None:
+    result = runner.invoke(app, ["--help"])
+
+    assert result.exit_code == 0
+    assert "semantic review assistant" in result.stdout
+
+
+def test_cli_compare_empty_files(tmp_path) -> None:
+    old = tmp_path / "old.md"
+    new = tmp_path / "new.md"
+    old.write_text("", encoding="utf-8")
+    new.write_text("", encoding="utf-8")
+
+    result = runner.invoke(app, ["compare", str(old), str(new), "--model", "tfidf", "--json"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["drift_label"] == "low"
+    assert payload["warnings"]
+
+
+def test_cli_invalid_model_shows_error(tmp_path) -> None:
+    old = tmp_path / "old.md"
+    new = tmp_path / "new.md"
+    old.write_text("old", encoding="utf-8")
+    new.write_text("new", encoding="utf-8")
+
+    result = runner.invoke(app, ["compare", str(old), str(new), "--model", "tfdif"])
+
+    assert result.exit_code == 2
+    assert "Unknown model" in result.stderr
+
+
+def test_cli_max_file_size_truncates_with_warning(tmp_path) -> None:
+    old = tmp_path / "old.md"
+    new = tmp_path / "new.md"
+    old.write_text("abcdefghij", encoding="utf-8")
+    new.write_text("abcdefghij", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "compare",
+            str(old),
+            str(new),
+            "--model",
+            "tfidf",
+            "--json",
+            "--max-file-size",
+            "4",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert any("truncated" in warning for warning in payload["warnings"])
+
+
+def test_json_output_score_is_float(tmp_path):
+    old = tmp_path / "old.txt"
+    new = tmp_path / "new.txt"
+    old.write_text("We retain logs for 30 days.", encoding="utf-8")
+    new.write_text("We retain logs for 180 days.", encoding="utf-8")
+    result = runner.invoke(app, ["compare", str(old), str(new), "--model", "tfidf", "--json"])
+    assert result.exit_code in (0, 1)
+    payload = json.loads(result.stdout)
+    assert isinstance(payload["overall_score"], float)
+    assert 0.0 <= payload["overall_score"] <= 1.0
+
+
+def test_json_output_drift_label_valid(tmp_path):
+    old = tmp_path / "old.txt"
+    new = tmp_path / "new.txt"
+    old.write_text("We retain logs for 30 days.", encoding="utf-8")
+    new.write_text("We retain logs for 180 days.", encoding="utf-8")
+    result = runner.invoke(app, ["compare", str(old), str(new), "--model", "tfidf", "--json"])
+    assert result.exit_code in (0, 1)
+    payload = json.loads(result.stdout)
+    assert payload["drift_label"] in {"low", "medium", "high", "critical"}
+
+
+def test_max_file_size_zero_exits_with_error(tmp_path):
+    old = tmp_path / "old.txt"
+    new = tmp_path / "new.txt"
+    old.write_text("Some text.", encoding="utf-8")
+    new.write_text("Other text.", encoding="utf-8")
+    result = runner.invoke(
+        app, ["compare", str(old), str(new), "--model", "tfidf", "--max-file-size", "0"]
+    )
+    assert result.exit_code != 0
