@@ -22,7 +22,7 @@ jobs:
       - uses: VeerajSai/SemShift@v0.2.0
         with:
           mode: policy
-          fail_on: high
+          fail_on: critical
           pr_comment: "true"
           model: tfidf
           report: semshift-report.md
