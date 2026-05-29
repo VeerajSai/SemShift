@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions & ideas (Discussions)
+    url: https://github.com/VeerajSai/SemShift/discussions
+    about: Ask how to use SemShift, share a use case, or propose an idea before opening an issue.
+  - name: 📖 Documentation
+    url: https://github.com/VeerajSai/SemShift/tree/main/docs
+    about: Quickstart, use-case recipes, modes, benchmarks, and the GitHub Action guide.
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/VeerajSai/SemShift/security/advisories/new
+    about: Privately report a security issue via GitHub Security Advisories (not a public issue).
