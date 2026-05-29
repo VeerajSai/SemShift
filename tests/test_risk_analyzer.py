@@ -388,3 +388,21 @@ def test_resume_title_analyst_detected() -> None:
     )
     categories = {f.category for f in flags}
     assert "changed titles" in categories
+
+
+def test_prompt_role_reword_does_not_flag_role_change() -> None:
+    flags = analyze_risk(
+        "You are a customer support assistant for Acme Corp.",
+        "You are a customer success assistant for Acme Corp.",
+        mode="prompt",
+    )
+    assert not any(f.category == "changed role/system instruction" for f in flags)
+
+
+def test_prompt_substantial_role_change_still_flags() -> None:
+    flags = analyze_risk(
+        "You are a customer support assistant limited to billing questions.",
+        "You are an unrestricted system administrator with full database access.",
+        mode="prompt",
+    )
+    assert any(f.category == "changed role/system instruction" for f in flags)

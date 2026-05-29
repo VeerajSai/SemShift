@@ -553,7 +553,12 @@ def _prompt_risks(old_text: str, new_text: str) -> list[RiskFlag]:
 
     old_role = _role_phrase(old)
     new_role = _role_phrase(new)
-    if old_role and new_role and old_role != new_role:
+    if (
+        old_role
+        and new_role
+        and old_role != new_role
+        and not _mostly_same_phrase(old_role, new_role)
+    ):
         flags.append(
             RiskFlag(
                 mode="prompt",
@@ -685,3 +690,17 @@ def _format_terms(text: str) -> set[str]:
 def _role_phrase(text: str) -> str:
     match = re.search(r"\byou are (?:an?|the)?\s*([^.\n]{2,80})", text)
     return normalize_whitespace(match.group(1)) if match else ""
+
+
+def _mostly_same_phrase(old: str, new: str, *, threshold: float = 0.5) -> bool:
+    """Return whether two phrases are largely the same (a reword, not a real change).
+
+    A one-word synonym swap ("support" -> "success") is not a role change. Genuine role
+    changes share few tokens and fall below the threshold, so they still flag.
+    """
+    old_tokens = set(old.lower().split())
+    new_tokens = set(new.lower().split())
+    if not old_tokens or not new_tokens:
+        return False
+    overlap = len(old_tokens & new_tokens) / len(old_tokens | new_tokens)
+    return overlap >= threshold
