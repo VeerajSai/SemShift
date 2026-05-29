@@ -141,12 +141,21 @@ def evaluate_examples(examples: list[BenchmarkExample], *, model: str) -> dict[s
         "benign_false_critical_rate": round(benign_critical / max(1, len(benign_rows)), 4),
         "benign_false_high_risk_rate": round(benign_high_or_critical / max(1, len(benign_rows)), 4),
         "mode_breakdown": _mode_breakdown(rows),
+        "confusion_matrix": _confusion_matrix(labels_expected, labels_predicted),
         "label_counts": {
             "expected": dict(Counter(labels_expected)),
             "predicted": dict(Counter(labels_predicted)),
         },
         "examples": rows,
     }
+
+
+def _confusion_matrix(expected: list[str], predicted: list[str]) -> dict[str, dict[str, int]]:
+    """Return an expected x predicted count matrix over the label set."""
+    matrix = {row: {col: 0 for col in LABELS} for row in LABELS}
+    for exp, pred in zip(expected, predicted, strict=True):
+        matrix[exp][pred] += 1
+    return matrix
 
 
 def render_results(results: dict[str, Any], output_path: Path) -> None:
@@ -171,6 +180,17 @@ def render_results(results: dict[str, Any], output_path: Path) -> None:
     for mode, stats in sorted(results["mode_breakdown"].items()):
         mode_table.add_row(mode, str(stats["count"]), f"{stats['label_accuracy']:.3f}")
     CONSOLE.print(mode_table)
+
+    matrix = results["confusion_matrix"]
+    confusion = Table(title="Confusion Matrix (rows = expected, columns = predicted)")
+    confusion.add_column("expected \\ predicted")
+    for label in LABELS:
+        confusion.add_column(label, justify="right")
+    for expected_label in LABELS:
+        cells = [str(matrix[expected_label][predicted_label]) for predicted_label in LABELS]
+        confusion.add_row(expected_label, *cells)
+    CONSOLE.print(confusion)
+
     CONSOLE.print(f"Wrote starter self-evaluation results to {output_path}")
 
 

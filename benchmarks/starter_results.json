@@ -2,102 +2,128 @@
   "metadata": {
     "benchmark": "semshift_bench_v1",
     "model": "tfidf",
-    "example_count": 84,
+    "example_count": 96,
     "created_inside_repository": true,
     "external_validation": false,
-    "elapsed_seconds": 0.203,
-    "mean_latency_ms": 2.408
+    "elapsed_seconds": 0.37,
+    "mean_latency_ms": 3.842
   },
-  "label_accuracy": 0.7262,
-  "tolerance_accuracy": 0.8512,
-  "macro_f1": 0.7048,
+  "label_accuracy": 0.7292,
+  "tolerance_accuracy": 0.849,
+  "macro_f1": 0.7145,
   "per_label_metrics": {
     "low": {
-      "precision": 0.8571,
-      "recall": 0.3158,
-      "f1": 0.4615,
-      "true_positive": 6,
+      "precision": 0.9,
+      "recall": 0.4091,
+      "f1": 0.5625,
+      "true_positive": 9,
       "false_positive": 1,
       "false_negative": 13,
-      "true_negative": 64
+      "true_negative": 73
     },
     "medium": {
-      "precision": 0.4878,
-      "recall": 0.9524,
-      "f1": 0.6452,
+      "precision": 0.4651,
+      "recall": 0.9091,
+      "f1": 0.6154,
       "true_positive": 20,
-      "false_positive": 21,
-      "false_negative": 1,
-      "true_negative": 42
+      "false_positive": 23,
+      "false_negative": 2,
+      "true_negative": 51
     },
     "high": {
-      "precision": 1.0,
-      "recall": 0.8,
-      "f1": 0.8889,
-      "true_positive": 28,
-      "false_positive": 0,
-      "false_negative": 7,
-      "true_negative": 49
+      "precision": 0.9706,
+      "recall": 0.8049,
+      "f1": 0.88,
+      "true_positive": 33,
+      "false_positive": 1,
+      "false_negative": 8,
+      "true_negative": 54
     },
     "critical": {
-      "precision": 0.875,
-      "recall": 0.7778,
-      "f1": 0.8235,
-      "true_positive": 7,
+      "precision": 0.8889,
+      "recall": 0.7273,
+      "f1": 0.8,
+      "true_positive": 8,
       "false_positive": 1,
-      "false_negative": 2,
-      "true_negative": 74
+      "false_negative": 3,
+      "true_negative": 84
     }
   },
   "high_risk": {
-    "precision": 1.0,
-    "recall": 0.8182,
-    "f1": 0.9,
-    "true_positive": 36,
-    "false_positive": 0,
-    "false_negative": 8,
-    "true_negative": 40
+    "precision": 0.9767,
+    "recall": 0.8077,
+    "f1": 0.8842,
+    "true_positive": 42,
+    "false_positive": 1,
+    "false_negative": 10,
+    "true_negative": 43
   },
   "benign_false_critical_rate": 0.0,
   "benign_false_high_risk_rate": 0.0,
   "mode_breakdown": {
     "default": {
-      "count": 2,
-      "label_accuracy": 0.0
+      "count": 4,
+      "label_accuracy": 0.25
     },
     "policy": {
-      "count": 20,
-      "label_accuracy": 0.65
+      "count": 23,
+      "label_accuracy": 0.6522
     },
     "prompt": {
-      "count": 15,
-      "label_accuracy": 0.7333
+      "count": 18,
+      "label_accuracy": 0.7222
     },
     "readme": {
-      "count": 17,
-      "label_accuracy": 0.8235
+      "count": 19,
+      "label_accuracy": 0.8421
     },
     "research": {
-      "count": 17,
-      "label_accuracy": 0.8824
+      "count": 18,
+      "label_accuracy": 0.8889
     },
     "resume": {
-      "count": 13,
-      "label_accuracy": 0.6154
+      "count": 14,
+      "label_accuracy": 0.6429
+    }
+  },
+  "confusion_matrix": {
+    "low": {
+      "low": 9,
+      "medium": 13,
+      "high": 0,
+      "critical": 0
+    },
+    "medium": {
+      "low": 1,
+      "medium": 20,
+      "high": 1,
+      "critical": 0
+    },
+    "high": {
+      "low": 0,
+      "medium": 7,
+      "high": 33,
+      "critical": 1
+    },
+    "critical": {
+      "low": 0,
+      "medium": 3,
+      "high": 0,
+      "critical": 8
     }
   },
   "label_counts": {
     "expected": {
-      "critical": 9,
-      "high": 35,
-      "medium": 21,
-      "low": 19
+      "critical": 11,
+      "high": 41,
+      "medium": 22,
+      "low": 22
     },
     "predicted": {
-      "critical": 8,
-      "high": 28,
-      "medium": 41,
-      "low": 7
+      "critical": 9,
+      "high": 34,
+      "medium": 43,
+      "low": 10
     }
   },
   "examples": [
@@ -114,7 +140,7 @@
       "predicted_risk_categories": [
         "third-party sharing"
       ],
-      "latency_ms": 12.759
+      "latency_ms": 71.497
     },
     {
       "id": "policy-002",
@@ -129,7 +155,7 @@
       "predicted_risk_categories": [
         "longer retention"
       ],
-      "latency_ms": 2.424
+      "latency_ms": 3.822
     },
     {
       "id": "policy-003",
@@ -146,7 +172,7 @@
         "expanded tracking",
         "user rights removal"
       ],
-      "latency_ms": 2.387
+      "latency_ms": 3.052
     },
     {
       "id": "policy-004",
@@ -161,7 +187,7 @@
       "predicted_risk_categories": [
         "sensitive data expansion"
       ],
-      "latency_ms": 2.038
+      "latency_ms": 2.778
     },
     {
       "id": "policy-005",
@@ -176,7 +202,7 @@
       "predicted_risk_categories": [
         "user rights removal"
       ],
-      "latency_ms": 2.049
+      "latency_ms": 2.607
     },
     {
       "id": "policy-006",
@@ -191,7 +217,7 @@
       "predicted_risk_categories": [
         "mandatory arbitration"
       ],
-      "latency_ms": 2.326
+      "latency_ms": 2.949
     },
     {
       "id": "policy-007",
@@ -206,7 +232,7 @@
       "predicted_risk_categories": [
         "data sale/monetization"
       ],
-      "latency_ms": 1.861
+      "latency_ms": 2.593
     },
     {
       "id": "policy-008",
@@ -221,7 +247,7 @@
       "predicted_risk_categories": [
         "indefinite retention"
       ],
-      "latency_ms": 1.781
+      "latency_ms": 2.432
     },
     {
       "id": "policy-009",
@@ -234,7 +260,7 @@
         "expanded tracking"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 1.848
+      "latency_ms": 2.558
     },
     {
       "id": "policy-010",
@@ -249,7 +275,7 @@
       "predicted_risk_categories": [
         "liability limitation"
       ],
-      "latency_ms": 1.902
+      "latency_ms": 2.579
     },
     {
       "id": "prompt-001",
@@ -266,7 +292,7 @@
         "removed safety rule",
         "expanded allowed behavior"
       ],
-      "latency_ms": 2.557
+      "latency_ms": 3.382
     },
     {
       "id": "prompt-002",
@@ -283,7 +309,7 @@
         "removed scope constraint",
         "expanded allowed behavior"
       ],
-      "latency_ms": 2.163
+      "latency_ms": 2.877
     },
     {
       "id": "prompt-003",
@@ -296,7 +322,7 @@
         "changed output format"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 2.076
+      "latency_ms": 2.8
     },
     {
       "id": "prompt-004",
@@ -311,7 +337,7 @@
       "predicted_risk_categories": [
         "changed role/system instruction"
       ],
-      "latency_ms": 1.773
+      "latency_ms": 2.492
     },
     {
       "id": "prompt-005",
@@ -327,7 +353,7 @@
         "added hidden instruction",
         "removed secrecy obligation"
       ],
-      "latency_ms": 2.042
+      "latency_ms": 2.899
     },
     {
       "id": "prompt-006",
@@ -342,7 +368,7 @@
       "predicted_risk_categories": [
         "removed safety rule"
       ],
-      "latency_ms": 2.136
+      "latency_ms": 2.835
     },
     {
       "id": "prompt-007",
@@ -357,7 +383,7 @@
       "predicted_risk_categories": [
         "changed output format"
       ],
-      "latency_ms": 1.949
+      "latency_ms": 2.661
     },
     {
       "id": "prompt-008",
@@ -372,7 +398,7 @@
       "predicted_risk_categories": [
         "removed safety rule"
       ],
-      "latency_ms": 1.828
+      "latency_ms": 3.313
     },
     {
       "id": "prompt-009",
@@ -389,7 +415,7 @@
         "removed scope constraint",
         "expanded allowed behavior"
       ],
-      "latency_ms": 2.308
+      "latency_ms": 3.877
     },
     {
       "id": "prompt-010",
@@ -405,7 +431,7 @@
         "added hidden instruction",
         "changed role/system instruction"
       ],
-      "latency_ms": 1.93
+      "latency_ms": 3.131
     },
     {
       "id": "research-001",
@@ -423,7 +449,7 @@
         "removed uncertainty",
         "changed dataset/baseline"
       ],
-      "latency_ms": 2.303
+      "latency_ms": 3.551
     },
     {
       "id": "research-002",
@@ -438,7 +464,7 @@
       "predicted_risk_categories": [
         "increased metric claim"
       ],
-      "latency_ms": 2.236
+      "latency_ms": 3.337
     },
     {
       "id": "research-003",
@@ -453,7 +479,7 @@
       "predicted_risk_categories": [
         "changed dataset/baseline"
       ],
-      "latency_ms": 2.273
+      "latency_ms": 3.378
     },
     {
       "id": "research-004",
@@ -468,7 +494,7 @@
       "predicted_risk_categories": [
         "changed dataset/baseline"
       ],
-      "latency_ms": 1.731
+      "latency_ms": 2.594
     },
     {
       "id": "research-005",
@@ -484,7 +510,7 @@
       "predicted_risk_categories": [
         "removed uncertainty"
       ],
-      "latency_ms": 2.175
+      "latency_ms": 3.787
     },
     {
       "id": "research-006",
@@ -499,7 +525,7 @@
       "predicted_risk_categories": [
         "removed limitation"
       ],
-      "latency_ms": 1.86
+      "latency_ms": 2.273
     },
     {
       "id": "research-007",
@@ -514,7 +540,7 @@
       "predicted_risk_categories": [
         "increased metric claim"
       ],
-      "latency_ms": 2.148
+      "latency_ms": 2.217
     },
     {
       "id": "research-008",
@@ -530,7 +556,7 @@
       "predicted_risk_categories": [
         "removed limitation"
       ],
-      "latency_ms": 1.787
+      "latency_ms": 1.805
     },
     {
       "id": "research-009",
@@ -543,7 +569,7 @@
         "changed numeric claim"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 1.754
+      "latency_ms": 1.749
     },
     {
       "id": "research-010",
@@ -560,7 +586,7 @@
         "removed limitation",
         "removed uncertainty"
       ],
-      "latency_ms": 1.841
+      "latency_ms": 1.839
     },
     {
       "id": "resume-001",
@@ -576,7 +602,7 @@
         "changed numbers",
         "inflated impact"
       ],
-      "latency_ms": 2.27
+      "latency_ms": 2.385
     },
     {
       "id": "resume-002",
@@ -592,7 +618,7 @@
         "changed titles",
         "changed company/project names"
       ],
-      "latency_ms": 2.003
+      "latency_ms": 3.103
     },
     {
       "id": "resume-003",
@@ -608,7 +634,7 @@
       "predicted_risk_categories": [
         "changed numbers"
       ],
-      "latency_ms": 2.103
+      "latency_ms": 2.877
     },
     {
       "id": "resume-004",
@@ -623,7 +649,7 @@
       "predicted_risk_categories": [
         "changed company/project names"
       ],
-      "latency_ms": 2.277
+      "latency_ms": 2.438
     },
     {
       "id": "resume-005",
@@ -638,7 +664,7 @@
       "predicted_risk_categories": [
         "changed company/project names"
       ],
-      "latency_ms": 2.75
+      "latency_ms": 2.833
     },
     {
       "id": "resume-006",
@@ -654,7 +680,7 @@
       "predicted_risk_categories": [
         "changed numbers"
       ],
-      "latency_ms": 2.033
+      "latency_ms": 2.052
     },
     {
       "id": "resume-007",
@@ -668,7 +694,7 @@
         "inflated impact"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 1.817
+      "latency_ms": 1.86
     },
     {
       "id": "resume-008",
@@ -684,7 +710,7 @@
         "changed titles",
         "changed company/project names"
       ],
-      "latency_ms": 1.754
+      "latency_ms": 1.75
     },
     {
       "id": "resume-009",
@@ -700,7 +726,7 @@
       "predicted_risk_categories": [
         "changed company/project names"
       ],
-      "latency_ms": 2.374
+      "latency_ms": 2.676
     },
     {
       "id": "resume-010",
@@ -715,7 +741,7 @@
       "predicted_risk_categories": [
         "changed company/project names"
       ],
-      "latency_ms": 2.721
+      "latency_ms": 2.57
     },
     {
       "id": "readme-001",
@@ -730,7 +756,7 @@
       "predicted_risk_categories": [
         "removed installation requirements"
       ],
-      "latency_ms": 3.026
+      "latency_ms": 2.727
     },
     {
       "id": "readme-002",
@@ -745,7 +771,7 @@
       "predicted_risk_categories": [
         "commercial/pricing restriction"
       ],
-      "latency_ms": 3.512
+      "latency_ms": 2.341
     },
     {
       "id": "readme-003",
@@ -762,7 +788,7 @@
         "removed limitation",
         "unsupported guarantee"
       ],
-      "latency_ms": 2.216
+      "latency_ms": 2.01
     },
     {
       "id": "readme-004",
@@ -777,7 +803,7 @@
       "predicted_risk_categories": [
         "changed project scope"
       ],
-      "latency_ms": 2.162
+      "latency_ms": 2.57
     },
     {
       "id": "readme-005",
@@ -792,7 +818,7 @@
       "predicted_risk_categories": [
         "removed limitation"
       ],
-      "latency_ms": 2.352
+      "latency_ms": 3.569
     },
     {
       "id": "readme-006",
@@ -807,7 +833,7 @@
       "predicted_risk_categories": [
         "removed installation requirements"
       ],
-      "latency_ms": 2.068
+      "latency_ms": 2.87
     },
     {
       "id": "readme-007",
@@ -822,7 +848,7 @@
       "predicted_risk_categories": [
         "unsupported guarantee"
       ],
-      "latency_ms": 2.08
+      "latency_ms": 2.84
     },
     {
       "id": "readme-008",
@@ -835,7 +861,7 @@
         "removed limitation"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 2.296
+      "latency_ms": 4.283
     },
     {
       "id": "readme-009",
@@ -850,7 +876,7 @@
       "predicted_risk_categories": [
         "changed project scope"
       ],
-      "latency_ms": 2.353
+      "latency_ms": 3.129
     },
     {
       "id": "readme-010",
@@ -866,7 +892,7 @@
         "removed limitation",
         "unsupported guarantee"
       ],
-      "latency_ms": 2.531
+      "latency_ms": 2.796
     },
     {
       "id": "benign-001",
@@ -877,7 +903,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 3.262
+      "latency_ms": 4.095
     },
     {
       "id": "benign-002",
@@ -888,7 +914,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 2.74
+      "latency_ms": 3.809
     },
     {
       "id": "benign-003",
@@ -899,7 +925,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 2.16
+      "latency_ms": 3.397
     },
     {
       "id": "benign-004",
@@ -910,7 +936,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 2.126
+      "latency_ms": 3.365
     },
     {
       "id": "benign-005",
@@ -923,7 +949,7 @@
       "predicted_risk_categories": [
         "changed company/project names"
       ],
-      "latency_ms": 2.507
+      "latency_ms": 4.504
     },
     {
       "id": "benign-006",
@@ -934,7 +960,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 1.916
+      "latency_ms": 2.889
     },
     {
       "id": "benign-007",
@@ -945,7 +971,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 1.942
+      "latency_ms": 2.503
     },
     {
       "id": "benign-008",
@@ -956,7 +982,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 1.795
+      "latency_ms": 2.022
     },
     {
       "id": "benign-009",
@@ -967,7 +993,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 2.091
+      "latency_ms": 2.825
     },
     {
       "id": "benign-010",
@@ -978,7 +1004,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 1.908
+      "latency_ms": 2.431
     },
     {
       "id": "changelog-001",
@@ -991,7 +1017,7 @@
         "removed installation requirements"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 3.237
+      "latency_ms": 5.69
     },
     {
       "id": "changelog-002",
@@ -1002,7 +1028,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 2.693
+      "latency_ms": 4.936
     },
     {
       "id": "apidoc-001",
@@ -1015,7 +1041,7 @@
         "unsupported guarantee"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 3.025
+      "latency_ms": 5.08
     },
     {
       "id": "apidoc-002",
@@ -1028,7 +1054,7 @@
         "changed numeric claim"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 4.824
+      "latency_ms": 4.269
     },
     {
       "id": "contract-001",
@@ -1041,7 +1067,7 @@
         "user rights removal"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 5.235
+      "latency_ms": 5.296
     },
     {
       "id": "contract-002",
@@ -1054,7 +1080,7 @@
         "longer retention"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 2.411
+      "latency_ms": 4.164
     },
     {
       "id": "grant-001",
@@ -1071,7 +1097,7 @@
         "stronger conclusion",
         "removed uncertainty"
       ],
-      "latency_ms": 2.213
+      "latency_ms": 3.216
     },
     {
       "id": "grant-002",
@@ -1086,7 +1112,7 @@
       "predicted_risk_categories": [
         "changed dataset/baseline"
       ],
-      "latency_ms": 2.362
+      "latency_ms": 3.161
     },
     {
       "id": "handbook-001",
@@ -1099,7 +1125,7 @@
         "reduced consent"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 2.575
+      "latency_ms": 3.151
     },
     {
       "id": "handbook-002",
@@ -1112,7 +1138,7 @@
         "reduced consent"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 2.443
+      "latency_ms": 3.146
     },
     {
       "id": "resume-011",
@@ -1128,7 +1154,7 @@
       "predicted_risk_categories": [
         "changed company/project names"
       ],
-      "latency_ms": 2.081
+      "latency_ms": 2.765
     },
     {
       "id": "resume-012",
@@ -1144,7 +1170,7 @@
       "predicted_risk_categories": [
         "changed company/project names"
       ],
-      "latency_ms": 2.188
+      "latency_ms": 3.205
     },
     {
       "id": "research-011",
@@ -1155,7 +1181,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 2.34
+      "latency_ms": 3.559
     },
     {
       "id": "research-012",
@@ -1166,7 +1192,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 1.99
+      "latency_ms": 2.663
     },
     {
       "id": "prompt-011",
@@ -1177,7 +1203,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 1.875
+      "latency_ms": 3.554
     },
     {
       "id": "prompt-012",
@@ -1190,7 +1216,7 @@
         "removed safety rule"
       ],
       "predicted_risk_categories": [],
-      "latency_ms": 2.519
+      "latency_ms": 5.495
     },
     {
       "id": "policy-011",
@@ -1201,7 +1227,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 2.164
+      "latency_ms": 3.487
     },
     {
       "id": "policy-012",
@@ -1217,7 +1243,7 @@
       "predicted_risk_categories": [
         "sensitive data expansion"
       ],
-      "latency_ms": 2.192
+      "latency_ms": 3.602
     },
     {
       "id": "readme-011",
@@ -1232,7 +1258,7 @@
       "predicted_risk_categories": [
         "changed project scope"
       ],
-      "latency_ms": 2.016
+      "latency_ms": 3.054
     },
     {
       "id": "readme-012",
@@ -1248,7 +1274,7 @@
         "removed limitation",
         "unsupported guarantee"
       ],
-      "latency_ms": 1.951
+      "latency_ms": 2.713
     },
     {
       "id": "benign-011",
@@ -1259,7 +1285,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 1.774
+      "latency_ms": 2.496
     },
     {
       "id": "benign-012",
@@ -1270,7 +1296,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 2.278
+      "latency_ms": 3.132
     },
     {
       "id": "benign-013",
@@ -1281,7 +1307,7 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 2.282
+      "latency_ms": 3.089
     },
     {
       "id": "benign-014",
@@ -1292,7 +1318,177 @@
       "predicted_high_risk": false,
       "expected_risk_categories": [],
       "predicted_risk_categories": [],
-      "latency_ms": 2.206
+      "latency_ms": 3.035
+    },
+    {
+      "id": "heldout-policy-001",
+      "mode": "policy",
+      "expected_label": "critical",
+      "predicted_label": "critical",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "data sale/monetization"
+      ],
+      "predicted_risk_categories": [
+        "data sale/monetization"
+      ],
+      "latency_ms": 2.676
+    },
+    {
+      "id": "heldout-policy-002",
+      "mode": "policy",
+      "expected_label": "high",
+      "predicted_label": "medium",
+      "expected_high_risk": true,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "user rights removal"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 2.891
+    },
+    {
+      "id": "heldout-policy-003",
+      "mode": "policy",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "longer retention"
+      ],
+      "predicted_risk_categories": [
+        "longer retention"
+      ],
+      "latency_ms": 2.687
+    },
+    {
+      "id": "heldout-prompt-001",
+      "mode": "prompt",
+      "expected_label": "critical",
+      "predicted_label": "medium",
+      "expected_high_risk": true,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [
+        "removed secrecy obligation"
+      ],
+      "predicted_risk_categories": [],
+      "latency_ms": 3.229
+    },
+    {
+      "id": "heldout-prompt-002",
+      "mode": "prompt",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "expanded allowed behavior"
+      ],
+      "predicted_risk_categories": [
+        "removed scope constraint",
+        "expanded allowed behavior"
+      ],
+      "latency_ms": 6.529
+    },
+    {
+      "id": "heldout-prompt-003",
+      "mode": "prompt",
+      "expected_label": "low",
+      "predicted_label": "low",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 5.961
+    },
+    {
+      "id": "heldout-research-001",
+      "mode": "research",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "removed limitation",
+        "stronger conclusion"
+      ],
+      "predicted_risk_categories": [
+        "removed limitation",
+        "stronger conclusion",
+        "removed uncertainty",
+        "changed dataset/baseline"
+      ],
+      "latency_ms": 3.717
+    },
+    {
+      "id": "heldout-resume-001",
+      "mode": "resume",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "added impact metric"
+      ],
+      "predicted_risk_categories": [
+        "changed company/project names",
+        "added impact metric"
+      ],
+      "latency_ms": 2.932
+    },
+    {
+      "id": "heldout-readme-001",
+      "mode": "readme",
+      "expected_label": "high",
+      "predicted_label": "high",
+      "expected_high_risk": true,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "commercial/pricing restriction"
+      ],
+      "predicted_risk_categories": [
+        "changed project scope"
+      ],
+      "latency_ms": 3.168
+    },
+    {
+      "id": "heldout-readme-002",
+      "mode": "readme",
+      "expected_label": "low",
+      "predicted_label": "low",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 2.503
+    },
+    {
+      "id": "heldout-default-001",
+      "mode": "default",
+      "expected_label": "medium",
+      "predicted_label": "high",
+      "expected_high_risk": false,
+      "predicted_high_risk": true,
+      "expected_risk_categories": [
+        "confidence increase"
+      ],
+      "predicted_risk_categories": [
+        "confidence increase"
+      ],
+      "latency_ms": 2.757
+    },
+    {
+      "id": "heldout-benign-001",
+      "mode": "default",
+      "expected_label": "low",
+      "predicted_label": "low",
+      "expected_high_risk": false,
+      "predicted_high_risk": false,
+      "expected_risk_categories": [],
+      "predicted_risk_categories": [],
+      "latency_ms": 2.63
     }
   ]
 }
