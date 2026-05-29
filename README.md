@@ -6,11 +6,9 @@
 [![Security](https://github.com/VeerajSai/SemShift/actions/workflows/security.yml/badge.svg)](https://github.com/VeerajSai/SemShift/actions/workflows/security.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Catch risky meaning changes Git diff misses.
+![SemShift demo](assets/demo.svg)
 
-SemShift is a local-first review assistant for AI-rewritten and human-edited docs, prompts, policies, resumes, and research drafts. It flags likely semantic drift before you merge, publish, or submit text.
-
-Current release line: `v0.2.x` alpha. The default backend is lexical + heuristic (`tfidf`). Optional SentenceTransformers embeddings are local semantic embeddings, not a claim of legal, factual, or scientific authority.
+**SemShift reviews edited text for risky meaning changes — weakened privacy promises, softened obligations, inflated metrics, dropped safety rules — before you merge, publish, or submit. Local-first. Deterministic. No data leaves your machine.**
 
 ## 5-Second Demo
 
@@ -34,39 +32,48 @@ Risk flag: third-party sharing.
 Recommendation: hold approval until a human reviews the change.
 ```
 
-## Install
+Git diff shows you *what* changed. SemShift tells you *whether the meaning shifted in a way that matters*.
+
+## 30-Second Quickstart
 
 ```bash
 pip install semshift
 ```
 
-Optional local embedding backend:
-
-```bash
-pip install "semshift[models]"
-```
-
-Development:
-
-```bash
-pip install -e ".[dev]"
-```
-
-## Quick Start
+Compare two files:
 
 ```bash
 semshift compare examples/old_policy.md examples/new_policy.md --mode policy
+```
+
+Or review your own uncommitted edits — compare the working tree against the last commit:
+
+```bash
+semshift compare-git README.md
+```
+
+Want machine-readable output or a saved report?
+
+```bash
 semshift compare examples/old_policy.md examples/new_policy.md --mode policy --json
 semshift compare examples/old_policy.md examples/new_policy.md --mode policy --report semshift-report.md
 ```
 
-Use limits for large or generated files:
+## Compared To
 
-```bash
-semshift compare old.md new.md --max-file-size 5242880 --max-chunks 2000
-```
+| Tool | What it catches | What it misses |
+| --- | --- | --- |
+| Git diff | exact text edits | risk, claims, weakened obligations |
+| diff-match-patch | text similarity | domain-specific meaning changes |
+| LLM judge | broad qualitative review | local determinism, reproducibility, privacy by default |
+| Grammar checker | style and grammar | policy, prompt, research, and factual drift |
+| SemShift | likely risky semantic drift | subtle context, truth verification, legal authority |
 
 ## GitHub Action
+
+Gate pull requests on risky meaning changes, with an inline PR comment.
+
+![SemShift PR comment](assets/pr-comment.svg)
 
 ```yaml
 name: SemShift Check
@@ -106,6 +113,53 @@ Inputs include `files`, `paths`, `exclude_paths`, `mode`, `fail_on`, `model`, `r
 
 > **Note:** `fail_on` defaults to `high`. Use `fail_on: none` for warn-only mode.
 
+## Modes
+
+Six review modes tune the risk rules to your document type: `policy`, `prompt`, `research`, `resume`, `readme`, and `default`. Pick one with `--mode`.
+
+| Mode | Best for |
+| --- | --- |
+| `policy` | privacy policies, terms, consent language |
+| `prompt` | system prompts and instruction files |
+| `research` | research drafts and reports |
+| `resume` | resumes and bios |
+| `readme` | README and support docs |
+| `default` | general text review |
+
+See [docs/use-cases.md](docs/use-cases.md) for worked examples of each mode.
+
+## Install
+
+```bash
+pip install semshift
+```
+
+Optional local embedding backend (SentenceTransformers, runs on your machine):
+
+```bash
+pip install "semshift[models]"
+```
+
+Optional PDF and DOCX support:
+
+```bash
+pip install "semshift[formats]"
+```
+
+Development:
+
+```bash
+pip install -e ".[dev]"
+```
+
+Supported file formats: `txt`, `md`, `rst`, `json`, `yaml`, `yml`, `py`, `js`, `ts` out of the box, plus `pdf` and `docx` with `semshift[formats]`.
+
+For large or generated files, cap the work:
+
+```bash
+semshift compare old.md new.md --max-file-size 5242880 --max-chunks 2000
+```
+
 ## Python API
 
 ```python
@@ -126,48 +180,27 @@ file_result = compare_files("old_policy.md", "new_policy.md", mode="policy")
 report = file_result.to_markdown()
 ```
 
-Canonical fields include `drift_label`, `overall_score`, `drift_score`, `summary`, `matched_chunks`, `chunk_matches`, `claim_changes`, `tone_shift`, `risk_flags`, `warnings`, `metadata`, `to_dict()`, `to_json()`, and `to_markdown()`.
-
-## Modes
-
-| Mode | Maturity | Best for | Main signals |
-| --- | --- | --- | --- |
-| `policy` | stable | privacy policies, terms, consent language | sharing, retention, rights, obligations |
-| `prompt` | stable | system prompts and instruction files | safety rules, hidden instructions, scope |
-| `research` | experimental | research drafts and reports | metrics, datasets, baselines, limitations |
-| `resume` | experimental | resumes and bios | titles, metrics, company/project names |
-| `readme` | experimental | README and support docs | install requirements, guarantees, scope |
-| `default` | stable | general text review | drift score, claims, tone, generic risk |
+Result fields include `drift_label`, `overall_score`, `drift_score`, `summary`, `matched_chunks`, `chunk_matches`, `claim_changes`, `tone_shift`, `risk_flags`, `warnings`, `metadata`, plus `to_dict()`, `to_json()`, and `to_markdown()`.
 
 ## How It Works
 
-SemShift combines transparent signals:
+SemShift combines transparent, inspectable signals — no black-box model decides for you:
 
 1. Chunk alignment by headings and text structure.
 2. Lexical TF-IDF similarity by default, or optional local SentenceTransformers embeddings.
 3. Claim extraction, tone signals, and mode-specific risk rules.
 
-TF-IDF is a lexical backend, not a true semantic model. Optional embedding models may download weights on first use; document text is processed locally unless you explicitly integrate external services.
+TF-IDF is a **lexical** backend, not a true semantic model. Optional embedding models may download weights on first use; document text is processed locally unless you explicitly integrate external services.
 
 ## Benchmarks
 
-SemShift includes a starter self-evaluation benchmark for regression tracking. See [docs/benchmarks.md](docs/benchmarks.md).
+SemShift ships a starter self-evaluation benchmark for regression tracking. See [docs/benchmarks.md](docs/benchmarks.md).
 
-Do not treat starter benchmark numbers as independent validation. Human-labeled outside evaluation is still needed.
+These numbers are self-evaluation, **not** independent validation. They are useful for catching regressions, not for scientific claims — human-labeled outside evaluation is still needed.
 
-## Compared To
+## Honesty Is a Feature
 
-| Tool | What it catches | What it misses |
-| --- | --- | --- |
-| Git diff | exact text edits | risk, claims, weakened obligations |
-| diff-match-patch | text similarity | domain-specific meaning changes |
-| LLM judge | broad qualitative review | local determinism, reproducibility, privacy by default |
-| Grammar checker | style and grammar | policy, prompt, research, and factual drift |
-| SemShift | likely risky semantic drift | subtle context, truth verification, legal authority |
-
-## Limitations
-
-SemShift is:
+SemShift is deliberately upfront about what it is and is not. Trust comes from clear limits:
 
 - not legal advice
 - not a fact-checker
@@ -176,6 +209,8 @@ SemShift is:
 - likely to miss subtle context-dependent changes
 - likely to false-positive on harmless paraphrases
 - lexical + heuristic by default
+
+SemShift flags changes worth a human's attention. The human still decides.
 
 ## Troubleshooting
 
