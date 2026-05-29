@@ -59,3 +59,36 @@ class TestTfidfEmbeddings:
     def test_obvious_tfidf_typo_is_rejected(self) -> None:
         with pytest.raises(ValueError, match="Unknown model"):
             embed_texts(["some text"], model_name="tfdif")
+
+
+class TestEmbedderProtocol:
+    def test_get_embedder_returns_tfidf_embedder(self):
+        from semshift.core.embeddings import BaseEmbedder, TfidfEmbedder, get_embedder
+
+        embedder = get_embedder("tfidf")
+        assert isinstance(embedder, TfidfEmbedder)
+        assert isinstance(embedder, BaseEmbedder)
+        assert embedder.backend_type == "lexical"
+
+    def test_facade_matches_embedder_output(self):
+        from semshift.core.embeddings import get_embedder
+
+        texts = ["we share data with partners", "we may share data"]
+        facade = embed_texts(texts, model_name="tfidf")
+        direct = get_embedder("tfidf").embed(texts)
+        assert facade.backend == direct.backend == "tfidf"
+        assert facade.backend_type == direct.backend_type == "lexical"
+        assert facade.vectors.shape == direct.vectors.shape
+
+    def test_get_embedder_validates_semantic_name(self):
+        with pytest.raises(ValueError, match="Unknown model"):
+            from semshift.core.embeddings import get_embedder
+
+            get_embedder("definitely-not-a-model")
+
+    def test_semantic_embedder_selected_for_hf_id(self):
+        from semshift.core.embeddings import SentenceTransformerEmbedder, get_embedder
+
+        embedder = get_embedder("sentence-transformers/all-MiniLM-L6-v2")
+        assert isinstance(embedder, SentenceTransformerEmbedder)
+        assert embedder.backend_type == "semantic"

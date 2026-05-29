@@ -6,6 +6,7 @@ import os
 import re
 from dataclasses import dataclass
 from functools import lru_cache
+from typing import Protocol, runtime_checkable
 
 import numpy as np
 
@@ -32,27 +33,70 @@ class EmbeddingResult:
     warnings: tuple[str, ...] = ()
 
 
+@runtime_checkable
+class BaseEmbedder(Protocol):
+    """Protocol for embedding backends.
+
+    A backend turns a list of texts into vectors plus metadata. New backends
+    (e.g. NLI or other local models) only need to implement ``embed``.
+    """
+
+    name: str
+    backend_type: str
+
+    def embed(self, texts: list[str]) -> EmbeddingResult:
+        """Embed ``texts`` and return vectors with backend metadata."""
+        ...
+
+
+class TfidfEmbedder:
+    """Deterministic lexical TF-IDF backend (the default)."""
+
+    backend_type = "lexical"
+
+    def __init__(self, name: str = "tfidf") -> None:
+        self.name = name
+
+    def embed(self, texts: list[str]) -> EmbeddingResult:
+        return _tfidf_embeddings(texts, backend=self.name)
+
+
+class SentenceTransformerEmbedder:
+    """Optional local semantic backend (requires ``semshift[models]``)."""
+
+    backend_type = "semantic"
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def embed(self, texts: list[str]) -> EmbeddingResult:
+        model = _load_sentence_transformer(self.name)
+        vectors = model.encode(
+            texts,
+            normalize_embeddings=True,
+            show_progress_bar=False,
+        )
+        return EmbeddingResult(
+            vectors=np.asarray(vectors, dtype=float),
+            backend=self.name,
+            backend_type="semantic",
+        )
+
+
+def get_embedder(model_name: str = DEFAULT_MODEL) -> BaseEmbedder:
+    """Select the embedder backend for ``model_name`` (validates semantic names)."""
+    requested = model_name.strip() if model_name else DEFAULT_MODEL
+    if requested.lower() in TFIDF_ALIASES:
+        return TfidfEmbedder(name="tfidf")
+    _validate_semantic_model_name(requested)
+    return SentenceTransformerEmbedder(requested)
+
+
 def embed_texts(texts: list[str], model_name: str = DEFAULT_MODEL) -> EmbeddingResult:
     """Embed texts with a lexical TF-IDF backend or optional local semantic embeddings."""
     if not texts:
         return EmbeddingResult(vectors=np.zeros((0, 0)), backend="empty")
-
-    requested = model_name.strip() if model_name else DEFAULT_MODEL
-    if requested.lower() in TFIDF_ALIASES:
-        return _tfidf_embeddings(texts, backend="tfidf")
-
-    _validate_semantic_model_name(requested)
-    model = _load_sentence_transformer(requested)
-    vectors = model.encode(
-        texts,
-        normalize_embeddings=True,
-        show_progress_bar=False,
-    )
-    return EmbeddingResult(
-        vectors=np.asarray(vectors, dtype=float),
-        backend=requested,
-        backend_type="semantic",
-    )
+    return get_embedder(model_name).embed(texts)
 
 
 @lru_cache(maxsize=4)
