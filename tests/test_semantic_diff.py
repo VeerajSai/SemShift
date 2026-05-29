@@ -73,7 +73,7 @@ def test_compare_files_missing_file_raises(tmp_path) -> None:
 
 
 def test_compare_files_unsupported_extension_raises(tmp_path) -> None:
-    f = tmp_path / "file.pdf"
+    f = tmp_path / "file.exe"
     f.write_bytes(b"data")
     with pytest.raises(FileLoadError, match="Unsupported file extension"):
         compare_files(f, f)

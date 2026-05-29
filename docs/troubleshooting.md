@@ -34,3 +34,18 @@ Use `actions/checkout@v5` with `fetch-depth: 0`, confirm supported extensions, o
 ## Report Too Long
 
 PR comments are truncated. Open the linked workflow run and download the configured report artifact for the full Markdown report.
+
+## PDF and DOCX Files
+
+PDF and DOCX support is optional. Install the extractors with:
+
+```bash
+pip install "semshift[formats]"
+```
+
+Without them, comparing a `.pdf` or `.docx` raises a clear error pointing here. Notes:
+
+- Extraction is **best-effort plain text** — layout, styling, and images are dropped.
+- Scanned or image-only PDFs have no embedded text and will extract little or nothing.
+- These formats are **not** truncated by `--max-file-size`; an oversized file errors instead. Raise `--max-file-size` to read it.
+- HTML/`.htm` files need no extra dependency; tags are stripped to plain text using the standard library.

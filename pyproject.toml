@@ -56,6 +56,10 @@ dependencies = [
 models = [
   "sentence-transformers>=2.7,<4",
 ]
+formats = [
+  "pypdf>=4,<7",
+  "python-docx>=1,<2",
+]
 dev = [
   "build>=1.2,<2",
   "pre-commit>=3.7,<5",
