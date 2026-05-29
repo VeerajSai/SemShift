@@ -65,7 +65,7 @@ dev = [
   "pre-commit>=3.7,<5",
   "pytest>=8.0,<10",
   "pytest-cov>=5,<7",
-  "ruff>=0.5,<1",
+  "ruff>=0.15.14,<1",
   "twine>=5.0,<7",
 ]
 dev-models = [
@@ -73,7 +73,7 @@ dev-models = [
   "pre-commit>=3.7,<5",
   "pytest>=8.0,<10",
   "pytest-cov>=5,<7",
-  "ruff>=0.5,<1",
+  "ruff>=0.15.14,<1",
   "sentence-transformers>=2.7,<4",
   "twine>=5.0,<7",
 ]
