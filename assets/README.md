@@ -1,55 +1,29 @@
 # Assets for SemShift
 
-This directory contains visual assets used in the main README and documentation.
+Visual assets used in the main README, the docs landing page, and launch material.
 
-## Adding Demo Materials
+## Current assets
 
-### Demo GIF
+| File | What it is | Used by |
+| --- | --- | --- |
+| `demo.svg` | Hand-authored static terminal "screenshot" of `semshift compare … --mode policy` showing a CRITICAL policy-sharing flip. Renders reliably on GitHub. | README hero |
+| `cli-output.svg` | Compact static report card for `semshift compare-git` (working tree vs HEAD). | docs / social |
+| `pr-comment.svg` | Mock of the GitHub Action PR comment (summary table + honesty footer), matching `semshift/integrations/github_action.py`. | README GitHub Action section |
+| `demo.cast` | asciinema v2 recording of the policy demo, for regenerating a real GIF. | `scripts/record_demo.sh` |
 
-To showcase SemShift in action:
+All depicted scores/labels match real SemShift output: the `examples/old_policy.md → examples/new_policy.md` comparison scores **0.70 CRITICAL** with a `third-party sharing` risk flag.
 
-1. **Record a demo**: Capture terminal output showing `semshift compare` command with rich formatting
-   ```bash
-   # Example command to record
-   semshift compare examples/old_policy.md examples/new_policy.md --mode policy
-   ```
+## Why SVG (and not a checked-in GIF)
 
-2. **Save the GIF**: 
-   - Use a tool like [asciinema](https://asciinema.org/) or [terminalizer](https://www.terminalizer.com/)
-   - Export as `.gif` format
-   - Place in this `assets/` directory as `demo.gif`
+GitHub renders committed SVGs referenced by relative path in Markdown, and a static SVG is crisp, tiny, and diff-friendly. GitHub's image proxy can strip SVG animation, so `demo.svg` is authored to look right as a *static* frame. For an animated GIF (social posts, Product Hunt, the landing page), regenerate one from the cast:
 
-3. **Update the main README**:
-   ```markdown
-   ![SemShift Demo](assets/demo.gif)
-   ```
+```bash
+./scripts/record_demo.sh        # records demo.cast, then builds demo.gif (needs asciinema + agg)
+```
 
-### Screenshots
+## Adding new assets
 
-For UI/output examples:
-
-1. **Capture**: Screenshot or screen recording of SemShift output
-2. **Save**: Place in this directory with descriptive filename
-   - `policy-example.png` - Example policy drift detection
-   - `github-action-example.png` - GitHub Action in PR
-   - `cli-output-example.png` - Terminal output example
-3. **Optimize**: Compress to keep file size < 5MB
-4. **Reference**: Link from README with alt text:
-   ```markdown
-   ![Policy drift example output](assets/policy-example.png)
-   ```
-
-## Asset Guidelines
-
-- **Format**: PNG for screenshots, GIF for animations
-- **Size**: Keep files < 5MB for better web performance
-- **Alt text**: Always include descriptive alt text in markdown
-- **Naming**: Use descriptive, lowercase filenames with hyphens (e.g., `policy-drift-example.png`)
-- **Accessibility**: Ensure good contrast and readability
-- **Directory structure**: Keep all assets in this single directory for easy management
-
-## Current Assets
-
-*(Add entries as new assets are created)*
-
-- `demo.gif` - Terminal demo of SemShift comparing policy files (placeholder)
+- **Format:** SVG for diagrams/screenshots; PNG/GIF only when raster is required. Keep files small.
+- **Accuracy:** depicted output must match real SemShift behavior — generate it with `semshift compare …` first.
+- **Naming:** lowercase, hyphenated, descriptive (e.g. `resume-drift-example.svg`).
+- **Alt text:** always include descriptive alt text when embedding in Markdown.

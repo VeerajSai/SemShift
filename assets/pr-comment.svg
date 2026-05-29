@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" font-size="14">
+  <defs>
+    <linearGradient id="botglow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7AE5FF"/>
+      <stop offset="0.55" stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#6B7BFF"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="860" height="430" rx="12" fill="#0d1117"/>
+  <rect x="0.5" y="0.5" width="859" height="429" rx="12" fill="none" stroke="#21262d" stroke-width="1"/>
+
+  <!-- comment header -->
+  <circle cx="40" cy="40" r="18" fill="url(#botglow)"/>
+  <text x="40" y="45" text-anchor="middle" fill="#06070a" font-size="13" font-weight="700">SS</text>
+  <text x="70" y="37" fill="#e6edf3" font-weight="600">semshift</text>
+  <rect x="142" y="26" width="34" height="17" rx="4" fill="none" stroke="#30363d"/>
+  <text x="159" y="39" text-anchor="middle" fill="#7d8590" font-size="11">bot</text>
+  <text x="190" y="37" fill="#7d8590" font-size="13">commented on this pull request · now</text>
+  <rect x="22" y="58" width="816" height="1" fill="#21262d"/>
+
+  <!-- body -->
+  <text x="32" y="92" fill="#e6edf3" font-size="18" font-weight="600">SemShift semantic review</text>
+  <text x="32" y="120" fill="#c9d1d9">Compared <tspan font-weight="700" fill="#e6edf3">2</tspan> file(s). Worst drift: <tspan font-weight="700" fill="#ff7b72">CRITICAL</tspan>.</text>
+
+  <!-- table -->
+  <rect x="32" y="140" width="796" height="124" rx="8" fill="#0b0f14" stroke="#21262d"/>
+  <line x1="32" y1="172" x2="828" y2="172" stroke="#21262d"/>
+  <line x1="32" y1="218" x2="828" y2="218" stroke="#161b22"/>
+  <!-- header row -->
+  <text x="48" y="163" fill="#7d8590" font-size="12" font-weight="600">File</text>
+  <text x="430" y="163" fill="#7d8590" font-size="12" font-weight="600">Score</text>
+  <text x="520" y="163" fill="#7d8590" font-size="12" font-weight="600">Label</text>
+  <text x="640" y="163" fill="#7d8590" font-size="12" font-weight="600">Risk flags</text>
+  <text x="760" y="163" fill="#7d8590" font-size="12" font-weight="600">Claims</text>
+  <!-- row 1 -->
+  <text x="48" y="200" fill="#c9d1d9" font-family="ui-monospace, monospace" font-size="13">docs/privacy.md</text>
+  <text x="430" y="200" fill="#c9d1d9" font-family="ui-monospace, monospace">0.70</text>
+  <text x="520" y="200" fill="#ff7b72" font-weight="700" font-size="12">CRITICAL</text>
+  <text x="660" y="200" fill="#c9d1d9" font-family="ui-monospace, monospace">1</text>
+  <text x="772" y="200" fill="#c9d1d9" font-family="ui-monospace, monospace">5</text>
+  <!-- row 2 -->
+  <text x="48" y="246" fill="#c9d1d9" font-family="ui-monospace, monospace" font-size="13">prompts/system.md</text>
+  <text x="430" y="246" fill="#c9d1d9" font-family="ui-monospace, monospace">0.41</text>
+  <text x="520" y="246" fill="#d29922" font-weight="700" font-size="12">MEDIUM</text>
+  <text x="660" y="246" fill="#c9d1d9" font-family="ui-monospace, monospace">0</text>
+  <text x="772" y="246" fill="#c9d1d9" font-family="ui-monospace, monospace">2</text>
+
+  <text x="32" y="296" fill="#c9d1d9">Full Markdown report: <tspan font-family="ui-monospace, monospace" fill="#7AE5FF">semshift-report.md</tspan> in artifact <tspan font-family="ui-monospace, monospace" fill="#7AE5FF">semshift-policy-report</tspan>.</text>
+  <text x="32" y="320" fill="#7d8590" font-size="13">Workflow run artifacts: github.com/VeerajSai/SemShift/actions/runs/…</text>
+
+  <rect x="32" y="344" width="796" height="1" fill="#21262d"/>
+  <text x="32" y="376" fill="#6e7681" font-size="12" font-style="italic">SemShift flags likely semantic drift. It is not a legal opinion, fact-checker,</text>
+  <text x="32" y="396" fill="#6e7681" font-size="12" font-style="italic">scientific authority, or replacement for human review.</text>
+</svg>
