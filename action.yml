@@ -123,7 +123,7 @@ runs:
           --max-chunks "$SEMSHIFT_MAX_CHUNKS"
 
     - name: Upload SemShift report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: "${{ inputs.artifact_name }}"
